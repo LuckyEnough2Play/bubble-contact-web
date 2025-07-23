@@ -8,11 +8,13 @@ let formSelectedTags = [];
 let focusedContact = null;
 let links = [];
 const panelWidth = 150;
+const sidePanelWidth = 300;
+let sidePanelOpen = false;
 const svg = d3.select('#bubbleCanvas');
-const width = window.innerWidth - panelWidth;
+let width = window.innerWidth - panelWidth;
 const height = window.innerHeight - 40;
 svg.attr('width', width).attr('height', height);
-const centerX = width/2;
+let centerX = width/2;
 const centerY = height/2;
 const circleGroup = svg.select('#circleGroup');
 const linkGroup = svg.select('#linkGroup');
@@ -26,6 +28,18 @@ circleGroup.selectAll('circle')
   .style('fill','none')
   .style('stroke','#444')
   .style('stroke-dasharray','2,2');
+
+function updateDimensions(){
+  width = window.innerWidth - panelWidth - (sidePanelOpen ? sidePanelWidth : 0);
+  centerX = width/2;
+  svg.attr('width', width);
+  circleGroup.selectAll('circle').attr('cx', centerX).attr('cy', centerY);
+  if(simulation){
+    simulation.force('center', d3.forceCenter(centerX, centerY));
+    applyForces();
+    simulation.alpha(1).restart();
+  }
+}
 
 function matchesSearch(d){
   if(!searchTerm) return true;
@@ -199,6 +213,9 @@ function toggleFormTag(tag){
 }
 
 function openForm(contact){
+  document.body.classList.add('panel-open');
+  sidePanelOpen = true;
+  updateDimensions();
   document.getElementById('sidepanel').classList.add('open');
   document.getElementById('contact-id').value = contact ? contact.id : '';
   document.getElementById('firstName').value = contact?contact.firstName:'';
@@ -210,6 +227,9 @@ function openForm(contact){
 }
 
 function closeForm(){
+  document.body.classList.remove('panel-open');
+  sidePanelOpen = false;
+  updateDimensions();
   document.getElementById('sidepanel').classList.remove('open');
 }
 
@@ -331,5 +351,7 @@ document.getElementById('newTag').addEventListener('keydown',e=>{
     e.target.value='';
   }
 });
+
+window.addEventListener('resize', updateDimensions);
 
 load();
