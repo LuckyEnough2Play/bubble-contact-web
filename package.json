@@ -1,0 +1,24 @@
+{
+  "name": "bubble-contact-web",
+  "version": "1.0.0",
+  "description": "\"# bubble-contact-web\"",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LuckyEnough2Play/bubble-contact-web.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/LuckyEnough2Play/bubble-contact-web/issues"
+  },
+  "homepage": "https://github.com/LuckyEnough2Play/bubble-contact-web#readme",
+  "dependencies": {
+    "d3": "^7.9.0",
+    "electron": "^37.2.4"
+  }
+}
