@@ -221,8 +221,12 @@ document.getElementById('clearTags').addEventListener('click', clearFilterTags);
 document.addEventListener('click', (e) => {
   const panel = document.getElementById('sidepanel');
   if (!panel.classList.contains('open')) return;
+
   const addBtn = document.getElementById('add-bubble');
-  if (!panel.contains(e.target) && e.target !== addBtn) {
+  const inContact = e.target.closest('g.contact');
+
+  // Only close if the click was outside the panel and not on the add button or a contact bubble
+  if (!panel.contains(e.target) && e.target !== addBtn && !inContact) {
     closeForm();
   }
 });
