@@ -1,0 +1,18 @@
+{
+  "name": "bubble-contact-web",
+  "version": "1.0.0",
+  "description": "\"# bubble-contact-web\"",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "d3": "^7.8.5",
+    "electron": "^28.2.4"
+  }
+}

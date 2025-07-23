@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bubble Contacts</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="toolbar">
+    <input id="search" placeholder="Search contacts" />
+    <button id="add-btn">Add Contact</button>
+  </div>
+  <div id="bubble-container"></div>
+  <div id="side-panel" class="hidden">
+    <button id="close-panel">X</button>
+    <div id="detail-content"></div>
+  </div>
+
+  <script src="../node_modules/d3/dist/d3.min.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>
