@@ -72,11 +72,11 @@ function updateLinks(){
 
 function applyForces(){
   if(selectedFilterTags.length===0){
-    simulation.force('radial', d3.forceRadial(300, centerX, centerY).strength(0.2));
+    simulation.force('radial', d3.forceRadial(250, centerX, centerY).strength(0.2));
     circleGroup.selectAll('circle').style('display',(d,i)=>i===2?'block':'none');
   }else{
     simulation.force('radial', d3.forceRadial(d=>{
-      return d.matchLevel===2?100:d.matchLevel===1?200:300;
+      return d.matchLevel===2?50:d.matchLevel===1?150:250;
     }, centerX, centerY).strength(0.4));
     circleGroup.selectAll('circle').style('display','block');
   }
@@ -139,7 +139,7 @@ function setupSim(){
     .force('charge', d3.forceManyBody().strength(-50))
     .force('center', d3.forceCenter(centerX, centerY))
     .force('collision', d3.forceCollide(30))
-    .force('radial', d3.forceRadial(300, centerX, centerY).strength(0.2));
+    .force('radial', d3.forceRadial(250, centerX, centerY).strength(0.2));
 }
 
 function updateAllTags(){
