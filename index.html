@@ -19,24 +19,26 @@
       }
       #topbar input[type=text]{ flex:1; padding:4px; }
       #viz,#bubbleCanvas {
-        width:100%;
+        width:calc(100% - 150px);
         height:calc(100vh - 40px);
+        margin-left:150px;
         background:#222;
       }
       #sidepanel {
         position:fixed;
         top:0;
-        right:-300px;
+        right:0;
         width:300px;
         height:100%;
         background:#2b2b2b;
         color:#fff;
         padding:16px;
         box-shadow:-2px 0 5px rgba(0,0,0,0.3);
-        transition:right 0.3s;
+        transition:transform 0.3s;
+        transform:translateX(100%);
         overflow-y:auto;
       }
-      #sidepanel.open { right:0; }
+      #sidepanel.open { transform:translateX(0); }
       #close {
         background:none;
         border:none;
@@ -45,25 +47,77 @@
         float:right;
         cursor:pointer;
       }
-      label { display:block; margin-top:10px; }
+      .form-group { margin-bottom:10px; }
+      label { display:block; margin-bottom:4px; }
+      .add-bubble {
+        position:fixed;
+        bottom:20px;
+        right:20px;
+        background-color:#3a6ea5;
+        border-radius:50%;
+        width:48px;
+        height:48px;
+        color:white;
+        font-size:24px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        cursor:pointer;
+      }
+      #tagPanel {
+        position:fixed;
+        top:40px;
+        left:0;
+        width:150px;
+        bottom:0;
+        background:#2b2b2b;
+        color:#fff;
+        padding:10px;
+        overflow-y:auto;
+      }
+      .tag-box {
+        display:inline-block;
+        background-color:#3a6ea5;
+        border-radius:12px;
+        color:white;
+        padding:4px 10px;
+        margin:4px;
+        font-size:0.85em;
+        cursor:pointer;
+      }
+      .tag-box.selected { background-color:#558ccd; }
     </style>
 </head>
 <body>
   <div id="topbar">
     <button id="import">Import</button>
     <button id="export">Export</button>
-    <button id="add">Add</button>
     <input id="search" type="text" placeholder="Search" />
   </div>
+  <div id="tagPanel"></div>
   <svg id="bubbleCanvas"></svg>
+  <div class="add-bubble" id="add-bubble">+</div>
   <div id="sidepanel">
     <button id="close">&times;</button>
     <form id="contact-form">
       <input type="hidden" id="contact-id" />
-      <label>First Name<input id="firstName"></label>
-      <label>Last Name<input id="lastName"></label>
-      <label>Email<input id="email"></label>
-      <label>Tags<input id="tags" placeholder="comma separated"></label>
+      <div class="form-group">
+        <label>First Name:</label>
+        <input id="firstName" type="text" />
+      </div>
+      <div class="form-group">
+        <label>Last Name:</label>
+        <input id="lastName" type="text" />
+      </div>
+      <div class="form-group">
+        <label>Email:</label>
+        <input id="email" type="text" />
+      </div>
+      <div class="form-group">
+        <label>Tags:</label>
+        <div id="tag-options"></div>
+        <input id="newTag" type="text" placeholder="Add tag" />
+      </div>
       <button type="submit">Save</button>
     </form>
   </div>

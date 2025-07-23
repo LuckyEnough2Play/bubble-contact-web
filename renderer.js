@@ -2,10 +2,30 @@ const { ipcRenderer } = require('electron');
 let contacts = [];
 let simulation;
 let searchTerm = '';
+let allTags = new Set();
+let selectedFilterTags = [];
+let formSelectedTags = [];
+const panelWidth = 150;
 const svg = d3.select('#bubbleCanvas');
-const width = window.innerWidth;
+const width = window.innerWidth - panelWidth;
 const height = window.innerHeight - 40;
 svg.attr('width', width).attr('height', height);
+
+function matchesSearch(d){
+  if(!searchTerm) return true;
+  const t = searchTerm.toLowerCase();
+  return (
+    d.firstName.toLowerCase().includes(t) ||
+    d.lastName.toLowerCase().includes(t) ||
+    d.email.toLowerCase().includes(t) ||
+    d.tags.join(' ').toLowerCase().includes(t)
+  );
+}
+
+function matchesTags(d){
+  if(selectedFilterTags.length===0) return true;
+  return selectedFilterTags.every(t=>d.tags.includes(t));
+}
 
 function render() {
   const nodes = svg.selectAll('g.contact').data(contacts, d => d.id);
@@ -18,14 +38,7 @@ function render() {
   nodes.exit().remove();
 
   svg.selectAll('g.contact').style('display',d=>{
-    if(!searchTerm) return null;
-    const t = searchTerm.toLowerCase();
-    return (
-      d.firstName.toLowerCase().includes(t) ||
-      d.lastName.toLowerCase().includes(t) ||
-      d.email.toLowerCase().includes(t) ||
-      d.tags.join(' ').toLowerCase().includes(t)
-    ) ? null : 'none';
+    return (matchesSearch(d) && matchesTags(d)) ? null : 'none';
   });
 
   simulation.nodes(contacts).on('tick', ticked).alpha(1).restart();
@@ -42,20 +55,70 @@ function setupSim(){
     .force('collision', d3.forceCollide(30));
 }
 
+function updateAllTags(){
+  allTags = new Set();
+  contacts.forEach(c=>c.tags.forEach(t=>allTags.add(t)));
+}
+
+function renderTagPanel(){
+  updateAllTags();
+  const tags = Array.from(allTags);
+  tags.sort((a,b)=>{
+    const aSel = selectedFilterTags.includes(a);
+    const bSel = selectedFilterTags.includes(b);
+    if(aSel && !bSel) return -1;
+    if(!aSel && bSel) return 1;
+    return a.localeCompare(b);
+  });
+  const panel = d3.select('#tagPanel').selectAll('div.tag-box').data(tags, d=>d);
+  const enter = panel.enter().append('div').attr('class','tag-box');
+  enter.merge(panel)
+    .classed('selected', d=>selectedFilterTags.includes(d))
+    .text(d=>d)
+    .on('click',(event,d)=>toggleFilterTag(d));
+  panel.exit().remove();
+}
+
+function toggleFilterTag(tag){
+  const idx = selectedFilterTags.indexOf(tag);
+  if(idx===-1) selectedFilterTags.push(tag); else selectedFilterTags.splice(idx,1);
+  renderTagPanel();
+  render();
+}
+
+function renderTagOptions(){
+  const tags = Array.from(allTags).sort();
+  const opts = d3.select('#tag-options').selectAll('div.tag-box').data(tags,d=>d);
+  const enter = opts.enter().append('div').attr('class','tag-box');
+  enter.merge(opts)
+    .classed('selected', d=>formSelectedTags.includes(d))
+    .text(d=>d)
+    .on('click',(event,d)=>toggleFormTag(d));
+  opts.exit().remove();
+}
+
+function toggleFormTag(tag){
+  const idx = formSelectedTags.indexOf(tag);
+  if(idx===-1) formSelectedTags.push(tag); else formSelectedTags.splice(idx,1);
+  renderTagOptions();
+}
+
 function openForm(contact){
   document.getElementById('sidepanel').classList.add('open');
   document.getElementById('contact-id').value = contact ? contact.id : '';
   document.getElementById('firstName').value = contact?contact.firstName:'';
   document.getElementById('lastName').value = contact?contact.lastName:'';
   document.getElementById('email').value = contact?contact.email:'';
-  document.getElementById('tags').value = contact?contact.tags.join(', '):'';
+  formSelectedTags = contact ? [...contact.tags] : [];
+  document.getElementById('newTag').value = '';
+  renderTagOptions();
 }
 
 function closeForm(){
   document.getElementById('sidepanel').classList.remove('open');
 }
 
-document.getElementById('add').addEventListener('click',()=>openForm());
+document.getElementById('add-bubble').addEventListener('click',()=>openForm());
 document.getElementById('close').addEventListener('click',closeForm);
 
 document.getElementById('contact-form').addEventListener('submit',e=>{
@@ -66,15 +129,18 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
     firstName: document.getElementById('firstName').value,
     lastName: document.getElementById('lastName').value,
     email: document.getElementById('email').value,
-    tags: document.getElementById('tags').value.split(',').map(s=>s.trim()).filter(Boolean)
+    tags: formSelectedTags.slice()
   };
   if(id){
     const idx = contacts.findIndex(x=>x.id===id);
     contacts[idx]=c;
   }else{
+    c.x = width - 60;
+    c.y = height - 60;
     contacts.push(c);
   }
   ipcRenderer.send('save-contacts', contacts);
+  renderTagPanel();
   closeForm();
   render();
 });
@@ -95,6 +161,8 @@ async function load(){
     c.y = Math.random()*height;
   });
   setupSim();
+  updateAllTags();
+  renderTagPanel();
   render();
 }
 
@@ -116,6 +184,8 @@ async function importCsv(){
     });
   });
   ipcRenderer.send('save-contacts', contacts);
+  updateAllTags();
+  renderTagPanel();
   render();
 }
 
@@ -133,6 +203,20 @@ document.getElementById('export').addEventListener('click', async()=>{
 document.getElementById('search').addEventListener('input', e=>{
   searchTerm = e.target.value;
   render();
+});
+
+document.getElementById('newTag').addEventListener('keydown',e=>{
+  if(e.key === 'Enter'){
+    e.preventDefault();
+    const tag = e.target.value.trim();
+    if(tag){
+      allTags.add(tag);
+      if(!formSelectedTags.includes(tag)) formSelectedTags.push(tag);
+      renderTagOptions();
+      renderTagPanel();
+    }
+    e.target.value='';
+  }
 });
 
 load();
