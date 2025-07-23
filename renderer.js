@@ -217,6 +217,16 @@ document.getElementById('add-bubble').addEventListener('click',()=>openForm());
 document.getElementById('close').addEventListener('click',closeForm);
 document.getElementById('clearTags').addEventListener('click', clearFilterTags);
 
+// Close the side panel when clicking anywhere outside of it
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('sidepanel');
+  if (!panel.classList.contains('open')) return;
+  const addBtn = document.getElementById('add-bubble');
+  if (!panel.contains(e.target) && e.target !== addBtn) {
+    closeForm();
+  }
+});
+
 document.getElementById('contact-form').addEventListener('submit',e=>{
   e.preventDefault();
   const id = document.getElementById('contact-id').value;
