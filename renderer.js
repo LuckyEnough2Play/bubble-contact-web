@@ -1,7 +1,8 @@
 const { ipcRenderer } = require('electron');
 let contacts = [];
 let simulation;
-const svg = d3.select('#viz');
+let searchTerm = '';
+const svg = d3.select('#bubbleCanvas');
 const width = window.innerWidth;
 const height = window.innerHeight - 40;
 svg.attr('width', width).attr('height', height);
@@ -15,6 +16,17 @@ function render() {
   enter.on('click', (event,d)=>openForm(d));
 
   nodes.exit().remove();
+
+  svg.selectAll('g.contact').style('display',d=>{
+    if(!searchTerm) return null;
+    const t = searchTerm.toLowerCase();
+    return (
+      d.firstName.toLowerCase().includes(t) ||
+      d.lastName.toLowerCase().includes(t) ||
+      d.email.toLowerCase().includes(t) ||
+      d.tags.join(' ').toLowerCase().includes(t)
+    ) ? null : 'none';
+  });
 
   simulation.nodes(contacts).on('tick', ticked).alpha(1).restart();
 }
@@ -69,6 +81,15 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
 
 async function load(){
   contacts = await ipcRenderer.invoke('load-contacts');
+  if(contacts.length === 0){
+    contacts.push({
+      id: Date.now().toString(),
+      firstName:'John',
+      lastName:'Doe',
+      email:'john@example.com',
+      tags:['sample']
+    });
+  }
   contacts.forEach(c=>{
     c.x = Math.random()*width;
     c.y = Math.random()*height;
@@ -107,6 +128,11 @@ document.getElementById('export').addEventListener('click', async()=>{
   });
   const csv = header.join(',')+'\n'+lines.join('\n');
   await ipcRenderer.invoke('export-csv', csv);
+});
+
+document.getElementById('search').addEventListener('input', e=>{
+  searchTerm = e.target.value;
+  render();
 });
 
 load();

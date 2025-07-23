@@ -3,15 +3,50 @@
 <head>
   <meta charset="UTF-8">
   <title>Bubble Contacts</title>
-  <style>
-    body { margin:0; font-family:sans-serif; }
-    #topbar { display:flex; align-items:center; padding:5px; background:#333; color:#fff; }
-    #topbar input[type=text]{ flex:1; margin-left:10px; }
-    #viz { width:100%; height:calc(100vh - 40px); background:#222; }
-    #sidepanel { position:fixed; top:0; right:-300px; width:300px; height:100%; background:#fafafa; padding:10px; box-shadow:-2px 0 5px rgba(0,0,0,0.3); transition:right 0.3s; overflow-y:auto; }
-    #sidepanel.open { right:0; }
-    label { display:block; margin-top:10px; }
-  </style>
+    <style>
+      body { margin:0; font-family:sans-serif; }
+      body.dark { background:#222; color:#fff; }
+      #topbar {
+        display:flex;
+        align-items:center;
+        padding:8px;
+        background:#333;
+        color:#fff;
+      }
+      #topbar button,
+      #topbar input[type=text] {
+        margin-right:10px;
+      }
+      #topbar input[type=text]{ flex:1; padding:4px; }
+      #viz,#bubbleCanvas {
+        width:100%;
+        height:calc(100vh - 40px);
+        background:#222;
+      }
+      #sidepanel {
+        position:fixed;
+        top:0;
+        right:-300px;
+        width:300px;
+        height:100%;
+        background:#2b2b2b;
+        color:#fff;
+        padding:16px;
+        box-shadow:-2px 0 5px rgba(0,0,0,0.3);
+        transition:right 0.3s;
+        overflow-y:auto;
+      }
+      #sidepanel.open { right:0; }
+      #close {
+        background:none;
+        border:none;
+        color:#fff;
+        font-size:20px;
+        float:right;
+        cursor:pointer;
+      }
+      label { display:block; margin-top:10px; }
+    </style>
 </head>
 <body>
   <div id="topbar">
@@ -20,9 +55,9 @@
     <button id="add">Add</button>
     <input id="search" type="text" placeholder="Search" />
   </div>
-  <svg id="viz"></svg>
+  <svg id="bubbleCanvas"></svg>
   <div id="sidepanel">
-    <button id="close">Close</button>
+    <button id="close">&times;</button>
     <form id="contact-form">
       <input type="hidden" id="contact-id" />
       <label>First Name<input id="firstName"></label>
@@ -32,7 +67,11 @@
       <button type="submit">Save</button>
     </form>
   </div>
-<script src="node_modules/d3/dist/d3.min.js"></script>
-<script src="renderer.js"></script>
+  <script>
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.body.classList.toggle('dark', isDarkMode);
+  </script>
+  <script src="node_modules/d3/dist/d3.min.js"></script>
+  <script src="renderer.js"></script>
 </body>
 </html>
