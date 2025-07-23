@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Bubble Contacts</title>
+  <style>
+    body { margin:0; font-family:sans-serif; }
+    #topbar { display:flex; align-items:center; padding:5px; background:#333; color:#fff; }
+    #topbar input[type=text]{ flex:1; margin-left:10px; }
+    #viz { width:100%; height:calc(100vh - 40px); background:#222; }
+    #sidepanel { position:fixed; top:0; right:-300px; width:300px; height:100%; background:#fafafa; padding:10px; box-shadow:-2px 0 5px rgba(0,0,0,0.3); transition:right 0.3s; overflow-y:auto; }
+    #sidepanel.open { right:0; }
+    label { display:block; margin-top:10px; }
+  </style>
+</head>
+<body>
+  <div id="topbar">
+    <button id="import">Import</button>
+    <button id="export">Export</button>
+    <button id="add">Add</button>
+    <input id="search" type="text" placeholder="Search" />
+  </div>
+  <svg id="viz"></svg>
+  <div id="sidepanel">
+    <button id="close">Close</button>
+    <form id="contact-form">
+      <input type="hidden" id="contact-id" />
+      <label>First Name<input id="firstName"></label>
+      <label>Last Name<input id="lastName"></label>
+      <label>Email<input id="email"></label>
+      <label>Tags<input id="tags" placeholder="comma separated"></label>
+      <button type="submit">Save</button>
+    </form>
+  </div>
+<script src="node_modules/d3/dist/d3.min.js"></script>
+<script src="renderer.js"></script>
+</body>
+</html>
