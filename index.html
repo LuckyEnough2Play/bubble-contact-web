@@ -75,6 +75,13 @@
         padding:10px;
         overflow-y:auto;
       }
+      #tagPanel button {
+        width:100%;
+        margin-bottom:8px;
+      }
+      #tagPanel h3 {
+        margin-top:0;
+      }
       .tag-box {
         display:inline-block;
         background-color:#3a6ea5;
@@ -94,7 +101,11 @@
     <button id="export">Export</button>
     <input id="search" type="text" placeholder="Search" />
   </div>
-  <div id="tagPanel"></div>
+  <div id="tagPanel">
+    <button id="clearTags">Clear Tags</button>
+    <h3>Tags Implemented</h3>
+    <div id="tagList"></div>
+  </div>
   <svg id="bubbleCanvas">
     <g id="circleGroup"></g>
     <g id="linkGroup"></g>

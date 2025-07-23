@@ -157,7 +157,7 @@ function renderTagPanel(){
     if(!aSel && bSel) return 1;
     return a.localeCompare(b);
   });
-  const panel = d3.select('#tagPanel').selectAll('div.tag-box').data(tags, d=>d);
+  const panel = d3.select('#tagList').selectAll('div.tag-box').data(tags, d=>d);
   const enter = panel.enter().append('div').attr('class','tag-box');
   enter.merge(panel)
     .classed('selected', d=>selectedFilterTags.includes(d))
@@ -169,6 +169,13 @@ function renderTagPanel(){
 function toggleFilterTag(tag){
   const idx = selectedFilterTags.indexOf(tag);
   if(idx===-1) selectedFilterTags.push(tag); else selectedFilterTags.splice(idx,1);
+  focusedContact = null;
+  renderTagPanel();
+  render();
+}
+
+function clearFilterTags(){
+  selectedFilterTags = [];
   focusedContact = null;
   renderTagPanel();
   render();
@@ -208,6 +215,7 @@ function closeForm(){
 
 document.getElementById('add-bubble').addEventListener('click',()=>openForm());
 document.getElementById('close').addEventListener('click',closeForm);
+document.getElementById('clearTags').addEventListener('click', clearFilterTags);
 
 document.getElementById('contact-form').addEventListener('submit',e=>{
   e.preventDefault();
