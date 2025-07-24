@@ -1,11 +1,12 @@
 {
   "name": "bubble-contact-web",
   "version": "1.0.0",
-  "description": "\"# bubble-contact-web\"",
+  "description": "# bubble-contact-web",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "start": "electron .",
+    "dist": "electron-builder",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -21,5 +22,24 @@
   "dependencies": {
     "d3": "^7.9.0",
     "electron": "^37.2.4"
+  },
+  "devDependencies": {
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.luckandloot.bubblecontacts",
+    "productName": "Bubble Contacts",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!dist",
+      "!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/*.map"
+    ],
+    "win": {
+      "target": "nsis"
+    }
   }
 }
