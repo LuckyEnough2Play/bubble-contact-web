@@ -37,6 +37,27 @@ function computeRadius(c){
   const base = len * 4 + 8; // approximate text width plus a small margin
   return Math.min(90, Math.max(25, base));
 }
+
+function createBubbleGradient(id){
+  const defs = svg.select('defs');
+  const cx = 20 + Math.random()*60;
+  const cy = 20 + Math.random()*60;
+  const grad = defs.append('radialGradient')
+    .attr('id', id)
+    .attr('cx', `${cx}%`)
+    .attr('cy', `${cy}%`)
+    .attr('r', '70%');
+  const hue1 = Math.random() * 360;
+  const hue2 = (hue1 + 60 + Math.random()*120) % 360;
+  const color1 = d3.hsl(hue1, 0.7, 0.6).toString();
+  const color2 = d3.hsl(hue2, 0.7, 0.4).toString();
+  const midHue = (hue1 + hue2) / 2;
+  const colorMid = d3.hsl(midHue, 0.8, 0.5).toString();
+  grad.append('stop').attr('offset','0%').attr('stop-color','rgba(255,255,255,0.9)');
+  grad.append('stop').attr('offset','50%').attr('stop-color',color1);
+  grad.append('stop').attr('offset','75%').attr('stop-color',colorMid);
+  grad.append('stop').attr('offset','100%').attr('stop-color',color2);
+}
 circleGroup.selectAll('circle')
   .data(zoneRadii)
   .enter()
@@ -158,21 +179,28 @@ function render() {
 
   const enter = nodes.enter().append('g').attr('class','contact');
   enter.append('circle')
+    .attr('class','bubble-circle')
     .attr('r',d=>d.radius)
-    .attr('fill','url(#marbleBlue)')
+    .attr('fill',d=>`url(#${d.gradientId})`)
     .attr('filter','url(#marbleShadow)');
+  enter.append('circle')
+    .attr('class','bubble-highlight')
+    .attr('r',d=>d.radius)
+    .attr('fill','url(#bubbleHighlight)');
   enter.append('text').attr('text-anchor','middle').attr('dy',5).text(d=>`${d.firstName} ${d.lastName}`.trim());
 
   const merged = enter.merge(nodes);
   merged.on('click', (event,d)=>{ focusFromBubble(d); openForm(d); })
     .call(dragBehavior());
   merged.select('text').text(d=>`${d.firstName} ${d.lastName}`.trim());
-  merged.select('circle')
+  merged.select('circle.bubble-circle')
     .attr('r', d=>d.radius)
     .attr('fill', d => {
     if(selectedFilterTags.length && d.matchLevel === 2) return 'url(#marbleGold)';
-    return 'url(#marbleBlue)';
+    return `url(#${d.gradientId})`;
   });
+  merged.select('circle.bubble-highlight')
+    .attr('r', d=>d.radius);
 
   nodes.exit().remove();
 
@@ -432,6 +460,9 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
     allTags.add(c.company);
   }
   c.radius = computeRadius(c);
+  const existing = contacts.find(x=>x.id===id);
+  c.gradientId = existing ? existing.gradientId : 'grad-'+c.id;
+  if(!existing) createBubbleGradient(c.gradientId);
   if(id){
     const idx = contacts.findIndex(x=>x.id===id);
     c.x = contacts[idx].x;
@@ -470,6 +501,8 @@ async function load(){
     c.x = Math.random()*width;
     c.y = Math.random()*height;
     c.radius = computeRadius(c);
+    c.gradientId = 'grad-'+c.id;
+    createBubbleGradient(c.gradientId);
   });
   setupSim();
   updateAllTags();
@@ -514,6 +547,8 @@ async function importCsv(){
     c.x = Math.random()*width;
     c.y = Math.random()*height;
     c.radius = computeRadius(c);
+    c.gradientId = 'grad-'+c.id;
+    createBubbleGradient(c.gradientId);
     contacts.push(c);
   });
   ipcRenderer.send('save-contacts', contacts);
