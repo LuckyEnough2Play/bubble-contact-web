@@ -246,14 +246,24 @@ function renderTagOptions(){
   const activeEnter = activeSel.enter().append('div').attr('class','tag-box selected');
   activeEnter.merge(activeSel)
     .text(d=>d)
-    .on('click',(event,d)=>toggleFormTag(d));
+    .on('click',(event,d)=>{
+      // Prevent the document click handler from closing the side panel when
+      // tags are clicked and immediately removed/re-added
+      event.stopPropagation();
+      toggleFormTag(d);
+    });
   activeSel.exit().remove();
 
   const availSel = d3.select('#available-tags').selectAll('div.tag-box').data(inactive,d=>d);
   const availEnter = availSel.enter().append('div').attr('class','tag-box');
   availEnter.merge(availSel)
     .text(d=>d)
-    .on('click',(event,d)=>toggleFormTag(d));
+    .on('click',(event,d)=>{
+      // Prevent the document click handler from closing the side panel when
+      // tags are clicked and immediately removed/re-added
+      event.stopPropagation();
+      toggleFormTag(d);
+    });
   availSel.exit().remove();
 }
 
