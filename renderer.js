@@ -47,10 +47,12 @@ function createBubbleGradient(id){
     .attr('cx', `${cx}%`)
     .attr('cy', `${cy}%`)
     .attr('r', '70%');
+  // Generate complementary colors for a more cohesive palette.
   const hue1 = Math.random() * 360;
-  const hue2 = (hue1 + 60 + Math.random()*120) % 360;
+  const hue2 = (hue1 + 180) % 360; // exact complementary hue
   const color1 = d3.hsl(hue1, 0.7, 0.6).toString();
   const color2 = d3.hsl(hue2, 0.7, 0.4).toString();
+  // Midpoint hue between the two complements to smooth the gradient
   const midHue = (hue1 + hue2) / 2;
   const colorMid = d3.hsl(midHue, 0.8, 0.5).toString();
   grad.append('stop').attr('offset','0%').attr('stop-color','rgba(255,255,255,0.9)');
