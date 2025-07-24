@@ -178,6 +178,28 @@
         pointer-events: none;
         cursor: default;
       }
+      #bubbleCanvas g.contact text {
+        fill: #fff;
+        font-weight: bold;
+        text-shadow: 0 0 3px rgba(0,0,0,0.7);
+      }
+      #bubbleCanvas g.contact .bubble-circle {
+        animation: bubbleShimmer 6s ease-in-out infinite;
+      }
+      #bubbleCanvas g.contact .bubble-highlight {
+        mix-blend-mode: screen;
+        animation: bubbleShimmer 6s ease-in-out infinite, rotateHighlight 20s linear infinite;
+        pointer-events: none;
+        transform-origin: center;
+      }
+      @keyframes bubbleShimmer {
+        0%,100% { opacity: 0.9; }
+        50% { opacity: 1; }
+      }
+      @keyframes rotateHighlight {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
     </style>
 </head>
 <body>
@@ -205,6 +227,10 @@
       <filter id="marbleShadow" x="-20%" y="-20%" width="140%" height="140%">
         <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)" />
       </filter>
+      <radialGradient id="bubbleHighlight" cx="30%" cy="30%" r="60%">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.8)" />
+        <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+      </radialGradient>
     </defs>
     <g id="viewGroup">
       <g id="linkGroup"></g>
