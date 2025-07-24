@@ -43,6 +43,38 @@ app.whenReady().then(() => {
   const isMac = process.platform === 'darwin';
   const menuTemplate = [
     {
+      label: 'File',
+      submenu: [
+        {
+          label: 'Import',
+          click: () => {
+            const win = BrowserWindow.getFocusedWindow();
+            if (win) win.webContents.send('menu-import');
+          }
+        },
+        {
+          label: 'Export',
+          click: () => {
+            const win = BrowserWindow.getFocusedWindow();
+            if (win) win.webContents.send('menu-export');
+          }
+        }
+      ]
+    },
+    {
+      label: 'Search',
+      submenu: [
+        {
+          label: 'Focus Search',
+          accelerator: 'CmdOrCtrl+F',
+          click: () => {
+            const win = BrowserWindow.getFocusedWindow();
+            if (win) win.webContents.send('menu-focus-search');
+          }
+        }
+      ]
+    },
+    {
       label: 'View',
       submenu: [
         { role: 'reload' },

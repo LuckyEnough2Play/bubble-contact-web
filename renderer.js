@@ -359,9 +359,8 @@ async function importCsv(){
   updateLinks();
 }
 
-document.getElementById('import').addEventListener('click', importCsv);
 
-document.getElementById('export').addEventListener('click', async()=>{
+async function exportCsv(){
   const header = ['First Name','Last Name','E-mail Address','Business Phone','Business Street','Company','Job Title','Categories'];
   const lines = contacts.map(c=>{
     return [
@@ -377,7 +376,12 @@ document.getElementById('export').addEventListener('click', async()=>{
   });
   const csv = header.join(',')+'\n'+lines.join('\n');
   await ipcRenderer.invoke('export-csv', csv);
-});
+}
+
+const importBtn = document.getElementById('import');
+if(importBtn) importBtn.addEventListener('click', importCsv);
+const exportBtn = document.getElementById('export');
+if(exportBtn) exportBtn.addEventListener('click', exportCsv);
 
 document.getElementById('search').addEventListener('input', e=>{
   searchTerm = e.target.value;
@@ -400,5 +404,12 @@ document.getElementById('newTag').addEventListener('keydown',e=>{
 
 
 window.addEventListener('resize', updateDimensions);
+
+ipcRenderer.on('menu-import', importCsv);
+ipcRenderer.on('menu-export', exportCsv);
+ipcRenderer.on('menu-focus-search', () => {
+  const input = document.getElementById('search');
+  if(input) input.focus();
+});
 
 load();

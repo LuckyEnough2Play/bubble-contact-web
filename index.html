@@ -13,11 +13,11 @@
         background:#333;
         color:#fff;
       }
-      #topbar button,
       #topbar input[type=text] {
         margin-right:10px;
+        width:200px;
+        padding:4px;
       }
-      #topbar input[type=text]{ flex:1; padding:4px; }
       #viz,#bubbleCanvas {
         width:calc(100% - 150px);
         height:calc(100vh - 40px);
@@ -101,8 +101,6 @@
 </head>
 <body>
   <div id="topbar">
-    <button id="import">Import</button>
-    <button id="export">Export</button>
     <input id="search" type="text" placeholder="Search" />
   </div>
   <div id="tagPanel">
