@@ -62,19 +62,6 @@ app.whenReady().then(() => {
       ]
     },
     {
-      label: 'Search',
-      submenu: [
-        {
-          label: 'Focus Search',
-          accelerator: 'CmdOrCtrl+F',
-          click: () => {
-            const win = BrowserWindow.getFocusedWindow();
-            if (win) win.webContents.send('menu-focus-search');
-          }
-        }
-      ]
-    },
-    {
       label: 'View',
       submenu: [
         { role: 'reload' },
