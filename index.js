@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, screen } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -17,9 +17,10 @@ function saveContacts(contacts) {
 }
 
 function createWindow () {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
   const win = new BrowserWindow({
-    width: 1000,
-    height: 700,
+    width,
+    height,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
