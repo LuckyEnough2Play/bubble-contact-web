@@ -7,12 +7,16 @@
       body { margin:0; font-family:sans-serif; }
       body.dark { background:#222; color:#fff; }
       #topbar {
-        position:relative; /* allow bar to scroll with page */
+        position:fixed;
+        top:0;
+        left:0;
+        right:0;
         display:flex;
         align-items:center;
         padding:8px;
         background:#333;
         color:#fff;
+        z-index:1000;
       }
       #topbar input[type=text] {
         margin-right:10px;
@@ -53,6 +57,7 @@
         min-height:calc(100vh - 40px); /* still fill initial view */
         height:auto; /* allow page to scroll normally */
         margin-left:225px;
+        margin-top:40px;
         background:#222;
         transition:width 0.3s;
       }
