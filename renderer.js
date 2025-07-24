@@ -300,6 +300,13 @@ document.addEventListener('click', (e) => {
 
 document.getElementById('contact-form').addEventListener('submit',e=>{
   e.preventDefault();
+  const newTagInput = document.getElementById('newTag');
+  const pendingTag = newTagInput.value.trim();
+  if(pendingTag){
+    allTags.add(pendingTag);
+    if(!formSelectedTags.includes(pendingTag)) formSelectedTags.push(pendingTag);
+    newTagInput.value = '';
+  }
   const id = document.getElementById('contact-id').value;
   const c = {
     id: id || Date.now().toString(),
