@@ -88,8 +88,8 @@ function applyMarbleStyle(sel){
     .attr('r', d=>d.radius);
   sel.select('text')
     .style('fill','#fff')
-    .style('font-weight','bold')
-    .style('text-shadow','0 0 3px rgba(0,0,0,0.7)');
+    .style('font-weight','normal')
+    .style('text-shadow','0 2px 4px rgba(0,0,0,0.6)');
 }
 circleGroup.selectAll('circle.zone-ring')
   .data(zoneRadii)
