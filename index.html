@@ -142,6 +142,19 @@
     <div id="tagList"></div>
   </div>
   <svg id="bubbleCanvas">
+    <defs>
+      <radialGradient id="marbleBlue" cx="35%" cy="35%" r="65%">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.9)" />
+        <stop offset="100%" stop-color="steelblue" />
+      </radialGradient>
+      <radialGradient id="marbleGold" cx="35%" cy="35%" r="65%">
+        <stop offset="0%" stop-color="rgba(255,255,255,0.9)" />
+        <stop offset="100%" stop-color="gold" />
+      </radialGradient>
+      <filter id="marbleShadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)" />
+      </filter>
+    </defs>
     <g id="circleGroup"></g>
     <g id="linkGroup"></g>
   </svg>

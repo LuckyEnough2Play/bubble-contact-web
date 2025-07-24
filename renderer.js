@@ -126,15 +126,18 @@ function render() {
   const nodes = svg.selectAll('g.contact').data(contacts, d => d.id);
 
   const enter = nodes.enter().append('g').attr('class','contact');
-  enter.append('circle').attr('r',25).attr('fill','steelblue');
+  enter.append('circle')
+    .attr('r',25)
+    .attr('fill','url(#marbleBlue)')
+    .attr('filter','url(#marbleShadow)');
   enter.append('text').attr('text-anchor','middle').attr('dy',5).text(d=>`${d.firstName} ${d.lastName}`.trim());
 
   const merged = enter.merge(nodes);
   merged.on('click', (event,d)=>{ focusFromBubble(d); openForm(d); });
   merged.select('text').text(d=>`${d.firstName} ${d.lastName}`.trim());
   merged.select('circle').attr('fill', d => {
-    if(selectedFilterTags.length && d.matchLevel === 2) return 'gold';
-    return 'steelblue';
+    if(selectedFilterTags.length && d.matchLevel === 2) return 'url(#marbleGold)';
+    return 'url(#marbleBlue)';
   });
 
   nodes.exit().remove();
