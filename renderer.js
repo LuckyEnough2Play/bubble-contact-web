@@ -382,11 +382,54 @@ const importBtn = document.getElementById('import');
 if(importBtn) importBtn.addEventListener('click', importCsv);
 const exportBtn = document.getElementById('export');
 if(exportBtn) exportBtn.addEventListener('click', exportCsv);
+const searchInput = document.getElementById('search');
+const searchResults = document.getElementById('search-results');
+let resultsHovered = false;
 
-document.getElementById('search').addEventListener('input', e=>{
+function clearSearch(){
+  searchTerm = '';
+  if(searchInput) searchInput.value = '';
+  if(searchResults){
+    searchResults.innerHTML = '';
+    searchResults.style.display = 'none';
+  }
+}
+
+function updateSearchResults(){
+  if(!searchResults) return;
+  searchResults.innerHTML = '';
+  if(!searchTerm){
+    searchResults.style.display = 'none';
+    return;
+  }
+  const matches = contacts.filter(matchesSearch).slice(0,5);
+  matches.forEach(c=>{
+    const div = document.createElement('div');
+    const name = `${c.firstName} ${c.lastName}`.trim() || c.email;
+    div.textContent = name;
+    div.addEventListener('click',()=>{
+      clearSearch();
+      focusFromBubble(c);
+      openForm(c);
+      render();
+    });
+    searchResults.appendChild(div);
+  });
+  searchResults.style.display = matches.length? 'block' : 'none';
+}
+
+searchInput.addEventListener('input', e=>{
   searchTerm = e.target.value;
   render();
+  updateSearchResults();
 });
+
+searchInput.addEventListener('blur', ()=>{
+  setTimeout(()=>{ if(!resultsHovered){ clearSearch(); render(); } }, 100);
+});
+
+searchResults.addEventListener('mouseenter',()=>{ resultsHovered = true; });
+searchResults.addEventListener('mouseleave',()=>{ resultsHovered = false; clearSearch(); render(); });
 
 document.getElementById('newTag').addEventListener('keydown',e=>{
   if(e.key === 'Enter'){

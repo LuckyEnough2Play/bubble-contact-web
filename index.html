@@ -18,6 +18,35 @@
         width:200px;
         padding:4px;
       }
+      #search-container { position:relative; display:inline-block; }
+      #search-results {
+        position:absolute;
+        top:100%;
+        left:0;
+        right:0;
+        background:#fff;
+        color:#000;
+        border:1px solid #ccc;
+        max-height:200px;
+        overflow-y:auto;
+        display:none;
+        z-index:1000;
+      }
+      body.dark #search-results {
+        background:#444;
+        color:#fff;
+        border-color:#666;
+      }
+      #search-results div {
+        padding:4px 8px;
+        cursor:pointer;
+      }
+      #search-results div:hover {
+        background:#ddd;
+      }
+      body.dark #search-results div:hover {
+        background:#555;
+      }
       #viz,#bubbleCanvas {
         width:calc(100% - 150px);
         height:calc(100vh - 40px);
@@ -101,7 +130,10 @@
 </head>
 <body>
   <div id="topbar">
-    <input id="search" type="text" placeholder="Search" />
+    <div id="search-container">
+      <input id="search" type="text" placeholder="Search" autocomplete="off" />
+      <div id="search-results"></div>
+    </div>
   </div>
   <div id="tagPanel">
     <button id="clearTags">Clear Active Tags</button>
