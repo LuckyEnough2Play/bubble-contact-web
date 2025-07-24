@@ -18,6 +18,12 @@ let centerX = width/2;
 const centerY = height/2;
 const circleGroup = svg.select('#circleGroup');
 const linkGroup = svg.select('#linkGroup');
+
+function computeRadius(c){
+  const name = (`${c.firstName} ${c.lastName}`.trim() || c.email || '');
+  const len = name.length;
+  return Math.min(80, Math.max(25, len * 4));
+}
 circleGroup.selectAll('circle')
   .data([100,200,300])
   .enter()
@@ -127,7 +133,7 @@ function render() {
 
   const enter = nodes.enter().append('g').attr('class','contact');
   enter.append('circle')
-    .attr('r',25)
+    .attr('r',d=>d.radius)
     .attr('fill','url(#marbleBlue)')
     .attr('filter','url(#marbleShadow)');
   enter.append('text').attr('text-anchor','middle').attr('dy',5).text(d=>`${d.firstName} ${d.lastName}`.trim());
@@ -136,7 +142,9 @@ function render() {
   merged.on('click', (event,d)=>{ focusFromBubble(d); openForm(d); })
     .call(dragBehavior());
   merged.select('text').text(d=>`${d.firstName} ${d.lastName}`.trim());
-  merged.select('circle').attr('fill', d => {
+  merged.select('circle')
+    .attr('r', d=>d.radius)
+    .attr('fill', d => {
     if(selectedFilterTags.length && d.matchLevel === 2) return 'url(#marbleGold)';
     return 'url(#marbleBlue)';
   });
@@ -220,7 +228,7 @@ function setupSim(){
   simulation = d3.forceSimulation(contacts)
     .force('charge', d3.forceManyBody().strength(-50))
     .force('center', d3.forceCenter(centerX, centerY))
-    .force('collision', d3.forceCollide(30))
+    .force('collision', d3.forceCollide(d=>d.radius + 5))
     .force('radial', d3.forceRadial(250, centerX, centerY).strength(0.2))
     .force('drift', randomDrift(0.1))
     .force('tagAttract', tagAttract(0.05));
@@ -368,6 +376,7 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
     company: document.getElementById('company').value,
     tags: formSelectedTags.slice()
   };
+  c.radius = computeRadius(c);
   if(id){
     const idx = contacts.findIndex(x=>x.id===id);
     c.x = contacts[idx].x;
@@ -403,6 +412,7 @@ async function load(){
   contacts.forEach(c=>{
     c.x = Math.random()*width;
     c.y = Math.random()*height;
+    c.radius = computeRadius(c);
   });
   setupSim();
   updateAllTags();
@@ -443,6 +453,9 @@ async function importCsv(){
       else if(lower.includes('job title') || lower === 'title') c.title = v;
       else if(lower === 'categories') c.tags = v.split(';').filter(Boolean);
     });
+    c.x = Math.random()*width;
+    c.y = Math.random()*height;
+    c.radius = computeRadius(c);
     contacts.push(c);
   });
   ipcRenderer.send('save-contacts', contacts);
