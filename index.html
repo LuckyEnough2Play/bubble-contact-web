@@ -126,6 +126,7 @@
         cursor:pointer;
       }
       .tag-box.selected { background-color:gold; color:black; }
+      .tag-area { display:flex; flex-wrap:wrap; }
     </style>
 </head>
 <body>
@@ -181,8 +182,15 @@
         <label>Tags:</label>
         <input id="newTag" type="text" placeholder="Add tag" />
       </div>
+      <div class="form-group">
+        <label>Active Tags:</label>
+        <div id="active-tags" class="tag-area"></div>
+      </div>
+      <div class="form-group">
+        <label>Existing Tags:</label>
+        <div id="available-tags" class="tag-area"></div>
+      </div>
       <button type="submit">Save</button>
-      <div id="tag-options" class="form-group"></div>
     </form>
   </div>
   <script>

@@ -239,13 +239,22 @@ function clearFilterTags(){
 
 function renderTagOptions(){
   const tags = Array.from(allTags).sort();
-  const opts = d3.select('#tag-options').selectAll('div.tag-box').data(tags,d=>d);
-  const enter = opts.enter().append('div').attr('class','tag-box');
-  enter.merge(opts)
-    .classed('selected', d=>formSelectedTags.includes(d))
+  const active = tags.filter(t=>formSelectedTags.includes(t));
+  const inactive = tags.filter(t=>!formSelectedTags.includes(t));
+
+  const activeSel = d3.select('#active-tags').selectAll('div.tag-box').data(active,d=>d);
+  const activeEnter = activeSel.enter().append('div').attr('class','tag-box selected');
+  activeEnter.merge(activeSel)
     .text(d=>d)
     .on('click',(event,d)=>toggleFormTag(d));
-  opts.exit().remove();
+  activeSel.exit().remove();
+
+  const availSel = d3.select('#available-tags').selectAll('div.tag-box').data(inactive,d=>d);
+  const availEnter = availSel.enter().append('div').attr('class','tag-box');
+  availEnter.merge(availSel)
+    .text(d=>d)
+    .on('click',(event,d)=>toggleFormTag(d));
+  availSel.exit().remove();
 }
 
 
