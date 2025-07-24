@@ -529,6 +529,7 @@ const searchResults = document.getElementById('search-results');
 let resultsHovered = false;
 const zoomSlider = document.getElementById('zoom-slider');
 const zoomDisplay = document.getElementById('zoom-display');
+const zoomResetBtn = document.getElementById('zoom-reset');
 
 function applyZoom(level){
   zoomLevel = Math.min(2, Math.max(0.5, level));
@@ -544,6 +545,11 @@ function applyZoom(level){
 if(zoomSlider){
   zoomSlider.addEventListener('input', e=>{
     applyZoom(e.target.value/100);
+  });
+}
+if(zoomResetBtn){
+  zoomResetBtn.addEventListener('click', () => {
+    applyZoom(1);
   });
 }
 
