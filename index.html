@@ -163,6 +163,13 @@
       .tag-area { display:flex; flex-wrap:wrap; }
       #tagList { display:flex; flex-wrap:wrap; }
       #active-tags { width:260px; }
+
+      /* Prevent text selection/cursor change on bubble labels */
+      #bubbleCanvas text {
+        user-select: none;
+        pointer-events: none;
+        cursor: default;
+      }
     </style>
 </head>
 <body>
