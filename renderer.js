@@ -22,7 +22,8 @@ const linkGroup = svg.select('#linkGroup');
 function computeRadius(c){
   const name = (`${c.firstName} ${c.lastName}`.trim() || c.email || '');
   const len = name.length;
-  return Math.min(80, Math.max(25, len * 4));
+  const base = len * 4 + 8; // approximate text width plus a small margin
+  return Math.min(90, Math.max(25, base));
 }
 circleGroup.selectAll('circle')
   .data([100,200,300])
