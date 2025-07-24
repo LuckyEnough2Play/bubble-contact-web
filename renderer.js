@@ -234,6 +234,22 @@ function render() {
 
   nodes.exit().remove();
 
+  // Highlight and remove any rogue circle elements not part of contacts or zone rings
+  d3.selectAll('circle')
+    .each(function() {
+      const el = d3.select(this);
+      if (!el.classed('bubble-circle') && !el.classed('zone-ring')) {
+        el.attr('stroke', 'red').attr('stroke-width', 2);
+      }
+    });
+
+  d3.selectAll('svg circle')
+    .filter(function() {
+      return !d3.select(this).classed('bubble-circle') &&
+             !d3.select(this).classed('zone-ring');
+    })
+    .remove();
+
   contactGroup.selectAll('g.contact')
     .style('display',d=> matchesSearch(d)? null : 'none')
     .style('opacity', d=>{
@@ -244,7 +260,7 @@ function render() {
   // FULL simulation reset to eliminate ghost particles
   simulation.stop();
   simulation.nodes([]);
-  simulation.nodes(contacts);
+  simulation.nodes(contacts.slice());
   simulation.on('tick', ticked);
   simulation.alpha(1).restart();
 
