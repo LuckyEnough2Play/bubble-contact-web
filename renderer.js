@@ -359,6 +359,8 @@ function openForm(contact){
   formSelectedTags = contact ? [...contact.tags] : [];
   document.getElementById('newTag').value = '';
   renderTagOptions();
+  const delBtn = document.getElementById('delete-contact');
+  if(delBtn) delBtn.style.display = contact ? 'block' : 'none';
 }
 
 function closeForm(){
@@ -368,9 +370,25 @@ function closeForm(){
   document.getElementById('sidepanel').classList.remove('open');
 }
 
+function deleteContact(){
+  const id = document.getElementById('contact-id').value;
+  if(!id) { closeForm(); return; }
+  if(!confirm('Delete this contact?')) return;
+  const idx = contacts.findIndex(c=>c.id===id);
+  if(idx!==-1){
+    contacts.splice(idx,1);
+    ipcRenderer.send('save-contacts', contacts);
+    renderTagPanel();
+    closeForm();
+    render();
+    updateLinks();
+  }
+}
+
 document.getElementById('add-bubble').addEventListener('click',()=>openForm());
 document.getElementById('close').addEventListener('click',closeForm);
 document.getElementById('clearTags').addEventListener('click', clearFilterTags);
+document.getElementById('delete-contact').addEventListener('click', deleteContact);
 
 // Close the side panel when clicking anywhere outside of it
 document.addEventListener('click', (e) => {
