@@ -89,16 +89,16 @@ function applyMarbleStyle(sel){
     .style('font-weight','bold')
     .style('text-shadow','0 0 3px rgba(0,0,0,0.7)');
 }
-circleGroup.selectAll('circle')
+circleGroup.selectAll('circle.zone-ring')
   .data(zoneRadii)
-  .enter()
-  .append('circle')
+  .join('circle')
+  .attr('class', 'zone-ring')
   .attr('cx', centerX)
   .attr('cy', centerY)
-  .attr('r', d=>d)
-  .style('fill','none')
-  .style('stroke','#444')
-  .style('stroke-dasharray','2,2');
+  .attr('r', d => d)
+  .style('fill', 'none')
+  .style('stroke', '#444')
+  .style('stroke-dasharray', '2,2');
 
 function updateDimensions(){
   width = window.innerWidth - panelWidth - (sidePanelOpen ? sidePanelWidth : 0);
@@ -106,7 +106,7 @@ function updateDimensions(){
   svg.attr('width', width);
   const maxR = Math.min(width,height)/2 - 50;
   zoneRadii = [maxR*0.3, maxR*0.6, maxR];
-  circleGroup.selectAll('circle')
+  circleGroup.selectAll('circle.zone-ring')
     .data(zoneRadii)
     .attr('r', d=>d)
     .attr('cx', centerX)
