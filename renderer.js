@@ -131,6 +131,10 @@ function render() {
   const merged = enter.merge(nodes);
   merged.on('click', (event,d)=>{ focusFromBubble(d); openForm(d); });
   merged.select('text').text(d=>`${d.firstName} ${d.lastName}`.trim());
+  merged.select('circle').attr('fill', d => {
+    if(selectedFilterTags.length && d.matchLevel === 2) return 'gold';
+    return 'steelblue';
+  });
 
   nodes.exit().remove();
 
