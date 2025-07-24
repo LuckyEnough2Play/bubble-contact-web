@@ -553,6 +553,8 @@ if(zoomSlider){
 }
 if(zoomResetBtn){
   zoomResetBtn.addEventListener('click', () => {
+    panX = 0;
+    panY = 0;
     applyZoom(1);
   });
 }
