@@ -123,6 +123,14 @@
         color:#fff;
       }
       #zoom-control input[type=range] { width:120px; }
+      #zoom-reset {
+        background:none;
+        border:none;
+        color:#fff;
+        font-size:16px;
+        margin-left:8px;
+        cursor:pointer;
+      }
       #tagPanel {
         position:fixed;
         top:40px;
@@ -191,6 +199,7 @@
   <div id="zoom-control">
     <input id="zoom-slider" type="range" min="50" max="200" value="100" />
     <span id="zoom-display">100%</span>
+    <button id="zoom-reset" title="Reset zoom">&#x21bb;</button>
   </div>
   <div class="add-bubble" id="add-bubble">+</div>
   <div id="sidepanel">
