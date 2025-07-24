@@ -34,6 +34,15 @@ function createWindow () {
     }
   });
   win.loadFile('index.html');
+
+  // Inform renderer when the window is resized or moved so the layout can
+  // recenter the bubbles. This helps keep bubbles visible when the window is
+  // snapped or dragged between displays.
+  const sendResize = () => {
+    if (win.webContents) win.webContents.send('window-resized');
+  };
+  win.on('resize', sendResize);
+  win.on('move', sendResize);
 }
 
 app.whenReady().then(() => {

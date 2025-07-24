@@ -71,6 +71,14 @@
         transform:translateX(100%);
         overflow-y:auto;
       }
+      #sidepanel form {
+        display:flex;
+        flex-direction:column;
+        height:100%;
+      }
+      #sidepanel form button[type=submit] {
+        margin-top:auto;
+      }
       #sidepanel.open { transform:translateX(0); }
       #close {
         background:none;
@@ -82,6 +90,10 @@
       }
       .form-group { margin-bottom:10px; }
       label { display:block; margin-bottom:4px; }
+      input[type=text] {
+        width:100%;
+        box-sizing:border-box;
+      }
       .add-bubble {
         position:fixed;
         bottom:20px;
@@ -97,6 +109,18 @@
         justify-content:center;
         cursor:pointer;
       }
+      #zoom-control {
+        position:fixed;
+        bottom:30px;
+        right:80px;
+        display:flex;
+        align-items:center;
+        background:rgba(0,0,0,0.5);
+        padding:4px 8px;
+        border-radius:8px;
+        color:#fff;
+      }
+      #zoom-control input[type=range] { width:120px; }
       #tagPanel {
         position:fixed;
         top:40px;
@@ -127,6 +151,7 @@
       }
       .tag-box.selected { background-color:gold; color:black; }
       .tag-area { display:flex; flex-wrap:wrap; }
+      #tagList { display:flex; flex-wrap:wrap; }
     </style>
 </head>
 <body>
@@ -155,9 +180,15 @@
         <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.3)" />
       </filter>
     </defs>
-    <g id="circleGroup"></g>
-    <g id="linkGroup"></g>
+    <g id="viewGroup">
+      <g id="linkGroup"></g>
+      <g id="circleGroup"></g>
+    </g>
   </svg>
+  <div id="zoom-control">
+    <input id="zoom-slider" type="range" min="50" max="200" value="100" />
+    <span id="zoom-display">100%</span>
+  </div>
   <div class="add-bubble" id="add-bubble">+</div>
   <div id="sidepanel">
     <button id="close">&times;</button>
