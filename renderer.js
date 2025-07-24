@@ -5,6 +5,7 @@ let searchTerm = '';
 let allTags = new Set();
 let selectedFilterTags = [];
 let formSelectedTags = [];
+let formCustomFields = {};
 let focusedContact = null;
 let links = [];
 const panelWidth = 150;
@@ -48,6 +49,10 @@ function matchesSearch(d){
     d.firstName.toLowerCase().includes(t) ||
     d.lastName.toLowerCase().includes(t) ||
     d.email.toLowerCase().includes(t) ||
+    d.phone.toLowerCase().includes(t) ||
+    d.address.toLowerCase().includes(t) ||
+    d.title.toLowerCase().includes(t) ||
+    d.company.toLowerCase().includes(t) ||
     d.tags.join(' ').toLowerCase().includes(t)
   );
 }
@@ -122,10 +127,11 @@ function render() {
 
   const enter = nodes.enter().append('g').attr('class','contact');
   enter.append('circle').attr('r',25).attr('fill','steelblue');
-  enter.append('text').attr('text-anchor','middle').attr('dy',5).text(d=>d.firstName);
+  enter.append('text').attr('text-anchor','middle').attr('dy',5).text(d=>`${d.firstName} ${d.lastName}`.trim());
 
   const merged = enter.merge(nodes);
   merged.on('click', (event,d)=>{ focusFromBubble(d); openForm(d); });
+  merged.select('text').text(d=>`${d.firstName} ${d.lastName}`.trim());
 
   nodes.exit().remove();
 
@@ -206,6 +212,32 @@ function renderTagOptions(){
   opts.exit().remove();
 }
 
+function renderCustomFields(){
+  const container = document.getElementById('custom-fields');
+  container.innerHTML = '';
+  Object.entries(formCustomFields).forEach(([key,value])=>{
+    const div = document.createElement('div');
+    div.className = 'form-group';
+    const label = document.createElement('label');
+    label.textContent = key + ':';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = value;
+    input.dataset.field = key;
+    const remove = document.createElement('span');
+    remove.textContent = '✕';
+    remove.className = 'remove-field';
+    remove.addEventListener('click',()=>{
+      delete formCustomFields[key];
+      renderCustomFields();
+    });
+    div.appendChild(label);
+    div.appendChild(input);
+    div.appendChild(remove);
+    container.appendChild(div);
+  });
+}
+
 function toggleFormTag(tag){
   const idx = formSelectedTags.indexOf(tag);
   if(idx===-1) formSelectedTags.push(tag); else formSelectedTags.splice(idx,1);
@@ -221,9 +253,15 @@ function openForm(contact){
   document.getElementById('firstName').value = contact?contact.firstName:'';
   document.getElementById('lastName').value = contact?contact.lastName:'';
   document.getElementById('email').value = contact?contact.email:'';
+  document.getElementById('phone').value = contact?contact.phone||'':'';
+  document.getElementById('address').value = contact?contact.address||'':'';
+  document.getElementById('title').value = contact?contact.title||'':'';
+  document.getElementById('company').value = contact?contact.company||'':'';
   formSelectedTags = contact ? [...contact.tags] : [];
+  formCustomFields = contact && contact.customFields? {...contact.customFields} : {};
   document.getElementById('newTag').value = '';
   renderTagOptions();
+  renderCustomFields();
 }
 
 function closeForm(){
@@ -259,10 +297,20 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
     firstName: document.getElementById('firstName').value,
     lastName: document.getElementById('lastName').value,
     email: document.getElementById('email').value,
-    tags: formSelectedTags.slice()
+    phone: document.getElementById('phone').value,
+    address: document.getElementById('address').value,
+    title: document.getElementById('title').value,
+    company: document.getElementById('company').value,
+    tags: formSelectedTags.slice(),
+    customFields: {}
   };
+  document.querySelectorAll('#custom-fields input[type=text]').forEach(inp=>{
+    c.customFields[inp.dataset.field] = inp.value;
+  });
   if(id){
     const idx = contacts.findIndex(x=>x.id===id);
+    c.x = contacts[idx].x;
+    c.y = contacts[idx].y;
     contacts[idx]=c;
   }else{
     c.x = width - 60;
@@ -284,7 +332,12 @@ async function load(){
       firstName:'John',
       lastName:'Doe',
       email:'john@example.com',
-      tags:['sample']
+      phone:'555-1234',
+      address:'123 Main St',
+      title:'Manager',
+      company:'Example Inc',
+      tags:['sample'],
+      customFields:{}
     });
   }
   contacts.forEach(c=>{
@@ -307,13 +360,32 @@ async function importCsv(){
     const cols = line.split(',');
     const obj = {};
     headers.forEach((h,i)=>obj[h]=cols[i]);
-    contacts.push({
+    const c = {
       id: Date.now().toString()+Math.random(),
-      firstName: obj['First Name']||'',
-      lastName: obj['Last Name']||'',
-      email: obj['E-mail Address']||'',
-      tags: (obj['Categories']||'').split(';').filter(Boolean)
+      firstName:'',
+      lastName:'',
+      email:'',
+      phone:'',
+      address:'',
+      title:'',
+      company:'',
+      tags:[],
+      customFields:{}
+    };
+    headers.forEach((h,i)=>{
+      const v = cols[i]||'';
+      const lower = h.toLowerCase();
+      if(lower === 'first name') c.firstName = v;
+      else if(lower === 'last name') c.lastName = v;
+      else if(lower.includes('email')) c.email = v;
+      else if(lower.includes('phone')) c.phone = v;
+      else if(lower.includes('address') || lower.includes('street')) c.address = v;
+      else if(lower.includes('company')) c.company = v;
+      else if(lower.includes('job title') || lower === 'title') c.title = v;
+      else if(lower === 'categories') c.tags = v.split(';').filter(Boolean);
+      else c.customFields[h]=v;
     });
+    contacts.push(c);
   });
   ipcRenderer.send('save-contacts', contacts);
   updateAllTags();
@@ -325,9 +397,18 @@ async function importCsv(){
 document.getElementById('import').addEventListener('click', importCsv);
 
 document.getElementById('export').addEventListener('click', async()=>{
-  const header = ['First Name','Last Name','E-mail Address','Categories'];
+  const header = ['First Name','Last Name','E-mail Address','Business Phone','Business Street','Company','Job Title','Categories'];
   const lines = contacts.map(c=>{
-    return [c.firstName,c.lastName,c.email,c.tags.join(';')].join(',');
+    return [
+      c.firstName,
+      c.lastName,
+      c.email,
+      c.phone||'',
+      c.address||'',
+      c.company||'',
+      c.title||'',
+      c.tags.join(';')
+    ].join(',');
   });
   const csv = header.join(',')+'\n'+lines.join('\n');
   await ipcRenderer.invoke('export-csv', csv);
@@ -349,6 +430,14 @@ document.getElementById('newTag').addEventListener('keydown',e=>{
       renderTagPanel();
     }
     e.target.value='';
+  }
+});
+
+document.getElementById('add-field').addEventListener('click',()=>{
+  const name = prompt('Field name');
+  if(name){
+    formCustomFields[name] = '';
+    renderCustomFields();
   }
 });
 
