@@ -133,7 +133,8 @@ function render() {
   enter.append('text').attr('text-anchor','middle').attr('dy',5).text(d=>`${d.firstName} ${d.lastName}`.trim());
 
   const merged = enter.merge(nodes);
-  merged.on('click', (event,d)=>{ focusFromBubble(d); openForm(d); });
+  merged.on('click', (event,d)=>{ focusFromBubble(d); openForm(d); })
+    .call(dragBehavior());
   merged.select('text').text(d=>`${d.firstName} ${d.lastName}`.trim());
   merged.select('circle').attr('fill', d => {
     if(selectedFilterTags.length && d.matchLevel === 2) return 'url(#marbleGold)';
@@ -159,6 +160,32 @@ function ticked(){
     .attr('y1',d=>d.source.y)
     .attr('x2',d=>d.target.x)
     .attr('y2',d=>d.target.y);
+}
+
+// Enable dragging/throwing of bubbles with smooth return.
+// Inspired by D3 drag behavior documentation.
+function dragBehavior(){
+  let prev = null;
+  function dragstarted(event, d){
+    if(!event.active) simulation.alphaTarget(0.3).restart();
+    d.fx = event.x;
+    d.fy = event.y;
+    prev = {x:event.x, y:event.y};
+  }
+  function dragged(event, d){
+    d.fx = event.x;
+    d.fy = event.y;
+    d.vx = event.x - prev.x;
+    d.vy = event.y - prev.y;
+    prev = {x:event.x, y:event.y};
+  }
+  function dragended(event, d){
+    if(!event.active) simulation.alphaTarget(0.05);
+    d.fx = null;
+    d.fy = null;
+    prev = null;
+  }
+  return d3.drag().on('start', dragstarted).on('drag', dragged).on('end', dragended);
 }
 
 // Idle drift speed for contacts. Increase the strength for faster motion.
