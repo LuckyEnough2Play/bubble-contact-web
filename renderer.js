@@ -20,6 +20,7 @@ const centerY = height/2;
 const viewGroup = svg.select('#viewGroup');
 const circleGroup = viewGroup.select('#circleGroup');
 const linkGroup = viewGroup.select('#linkGroup');
+const contactGroup = viewGroup.select('#contactGroup');
 let zoomLevel = 1;
 let zoneRadii = (()=>{
   const maxR = Math.min(width,height)/2 - 50;
@@ -149,7 +150,7 @@ function render() {
   updateLinks();
   applyForces();
 
-  const nodes = svg.selectAll('g.contact').data(contacts, d => d.id);
+  const nodes = contactGroup.selectAll('g.contact').data(contacts, d => d.id);
 
   const enter = nodes.enter().append('g').attr('class','contact');
   enter.append('circle')
@@ -171,7 +172,7 @@ function render() {
 
   nodes.exit().remove();
 
-  svg.selectAll('g.contact')
+  contactGroup.selectAll('g.contact')
     .style('display',d=> matchesSearch(d)? null : 'none')
     .style('opacity', d=>{
       if(selectedFilterTags.length===0) return 1;
@@ -182,7 +183,7 @@ function render() {
 }
 
 function ticked(){
-  svg.selectAll('g.contact').attr('transform',d=>`translate(${d.x},${d.y})`);
+  contactGroup.selectAll('g.contact').attr('transform',d=>`translate(${d.x},${d.y})`);
   linkGroup.selectAll('line.link')
     .attr('x1',d=>d.source.x)
     .attr('y1',d=>d.source.y)
