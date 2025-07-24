@@ -5,7 +5,6 @@ let searchTerm = '';
 let allTags = new Set();
 let selectedFilterTags = [];
 let formSelectedTags = [];
-let formCustomFields = {};
 let focusedContact = null;
 let links = [];
 const panelWidth = 150;
@@ -233,10 +232,8 @@ function openForm(contact){
   document.getElementById('title').value = contact?contact.title||'':'';
   document.getElementById('company').value = contact?contact.company||'':'';
   formSelectedTags = contact ? [...contact.tags] : [];
-  formCustomFields = contact && contact.customFields? {...contact.customFields} : {};
   document.getElementById('newTag').value = '';
   renderTagOptions();
-  renderCustomFields();
 }
 
 function closeForm(){
@@ -278,9 +275,6 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
     company: document.getElementById('company').value,
     tags: formSelectedTags.slice()
   };
-  document.querySelectorAll('#custom-fields input[type=text]').forEach(inp=>{
-    c.customFields[inp.dataset.field] = inp.value;
-  });
   if(id){
     const idx = contacts.findIndex(x=>x.id===id);
     c.x = contacts[idx].x;
@@ -404,13 +398,6 @@ document.getElementById('newTag').addEventListener('keydown',e=>{
   }
 });
 
-document.getElementById('add-field').addEventListener('click',()=>{
-  const name = prompt('Field name');
-  if(name){
-    formCustomFields[name] = '';
-    renderCustomFields();
-  }
-});
 
 window.addEventListener('resize', updateDimensions);
 
