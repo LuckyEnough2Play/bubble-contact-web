@@ -153,12 +153,26 @@ function ticked(){
     .attr('y2',d=>d.target.y);
 }
 
+function randomDrift(strength=0.05){
+  let nodes;
+  function force(){
+    for(const n of nodes){
+      n.vx += (Math.random()-0.5)*strength;
+      n.vy += (Math.random()-0.5)*strength;
+    }
+  }
+  force.initialize = _=>{ nodes = _; };
+  return force;
+}
+
 function setupSim(){
   simulation = d3.forceSimulation(contacts)
     .force('charge', d3.forceManyBody().strength(-50))
     .force('center', d3.forceCenter(centerX, centerY))
     .force('collision', d3.forceCollide(30))
-    .force('radial', d3.forceRadial(250, centerX, centerY).strength(0.2));
+    .force('radial', d3.forceRadial(250, centerX, centerY).strength(0.2))
+    .force('drift', randomDrift(0.05));
+  simulation.alphaTarget(0.02);
 }
 
 function updateAllTags(){
