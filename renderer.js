@@ -235,7 +235,10 @@ function render() {
       return d.matchLevel===2?1:d.matchLevel===1?0.6:0.1;
     });
 
-  simulation.nodes(contacts).on('tick', ticked).alpha(1).restart();
+  const validContacts = contactGroup.selectAll('g.contact').data();
+  simulation.nodes(validContacts).on('tick', ticked).alpha(1).restart();
+  console.log('Simulating', simulation.nodes().length, 'nodes');
+  console.log('Rendering', validContacts.length, 'contacts');
 }
 
 function ticked(){
