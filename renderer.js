@@ -212,31 +212,6 @@ function renderTagOptions(){
   opts.exit().remove();
 }
 
-function renderCustomFields(){
-  const container = document.getElementById('custom-fields');
-  container.innerHTML = '';
-  Object.entries(formCustomFields).forEach(([key,value])=>{
-    const div = document.createElement('div');
-    div.className = 'form-group';
-    const label = document.createElement('label');
-    label.textContent = key + ':';
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = value;
-    input.dataset.field = key;
-    const remove = document.createElement('span');
-    remove.textContent = '✕';
-    remove.className = 'remove-field';
-    remove.addEventListener('click',()=>{
-      delete formCustomFields[key];
-      renderCustomFields();
-    });
-    div.appendChild(label);
-    div.appendChild(input);
-    div.appendChild(remove);
-    container.appendChild(div);
-  });
-}
 
 function toggleFormTag(tag){
   const idx = formSelectedTags.indexOf(tag);
@@ -301,8 +276,7 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
     address: document.getElementById('address').value,
     title: document.getElementById('title').value,
     company: document.getElementById('company').value,
-    tags: formSelectedTags.slice(),
-    customFields: {}
+    tags: formSelectedTags.slice()
   };
   document.querySelectorAll('#custom-fields input[type=text]').forEach(inp=>{
     c.customFields[inp.dataset.field] = inp.value;
@@ -336,8 +310,7 @@ async function load(){
       address:'123 Main St',
       title:'Manager',
       company:'Example Inc',
-      tags:['sample'],
-      customFields:{}
+      tags:['sample']
     });
   }
   contacts.forEach(c=>{
@@ -369,8 +342,7 @@ async function importCsv(){
       address:'',
       title:'',
       company:'',
-      tags:[],
-      customFields:{}
+      tags:[]
     };
     headers.forEach((h,i)=>{
       const v = cols[i]||'';
@@ -383,7 +355,6 @@ async function importCsv(){
       else if(lower.includes('company')) c.company = v;
       else if(lower.includes('job title') || lower === 'title') c.title = v;
       else if(lower === 'categories') c.tags = v.split(';').filter(Boolean);
-      else c.customFields[h]=v;
     });
     contacts.push(c);
   });
