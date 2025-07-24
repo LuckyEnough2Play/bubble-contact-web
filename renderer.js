@@ -22,6 +22,10 @@ const circleGroup = viewGroup.select('#circleGroup');
 const linkGroup = viewGroup.select('#linkGroup');
 const contactGroup = viewGroup.select('#contactGroup');
 let zoomLevel = 1;
+let panX = 0;
+let panY = 0;
+let isPanning = false;
+let panStart = {x:0, y:0};
 let zoneRadii = (()=>{
   const maxR = Math.min(width,height)/2 - 50;
   return [maxR*0.3, maxR*0.6, maxR];
@@ -533,7 +537,7 @@ const zoomResetBtn = document.getElementById('zoom-reset');
 
 function applyZoom(level){
   zoomLevel = Math.min(2, Math.max(0.5, level));
-  viewGroup.attr('transform', `translate(${centerX*(1-zoomLevel)},${centerY*(1-zoomLevel)}) scale(${zoomLevel})`);
+  viewGroup.attr('transform', `translate(${centerX*(1-zoomLevel)+panX},${centerY*(1-zoomLevel)+panY}) scale(${zoomLevel})`);
   if(zoomSlider){
     zoomSlider.value = Math.round(zoomLevel*100);
   }
@@ -558,6 +562,26 @@ svg.node().addEventListener('wheel', e=>{
   const delta = e.deltaY < 0 ? 0.1 : -0.1;
   applyZoom(zoomLevel + delta);
 });
+
+svg.node().addEventListener('mousedown', e => {
+  if(e.button !== 0) return;
+  if(e.target.closest('g.contact')) return;
+  isPanning = true;
+  panStart = {x: e.clientX, y: e.clientY};
+});
+
+window.addEventListener('mousemove', e => {
+  if(!isPanning) return;
+  const dx = e.clientX - panStart.x;
+  const dy = e.clientY - panStart.y;
+  panX += dx;
+  panY += dy;
+  panStart = {x: e.clientX, y: e.clientY};
+  applyZoom(zoomLevel);
+});
+
+window.addEventListener('mouseup', () => { isPanning = false; });
+svg.node().addEventListener('mouseleave', () => { isPanning = false; });
 
 function clearSearch(){
   searchTerm = '';
