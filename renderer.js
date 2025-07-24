@@ -158,7 +158,8 @@ function ticked(){
     .attr('y2',d=>d.target.y);
 }
 
-function randomDrift(strength=0.07){
+// Idle drift speed for contacts. Increase the strength for faster motion.
+function randomDrift(strength=0.1){
   let nodes;
   function force(){
     for(const n of nodes){
@@ -170,7 +171,8 @@ function randomDrift(strength=0.07){
   return force;
 }
 
-function tagAttract(strength=0.02){
+// Draws contacts with shared tags toward one another.
+function tagAttract(strength=0.05){
   return function(alpha){
     for(const l of links){
       const dx = l.target.x - l.source.x;
@@ -190,9 +192,10 @@ function setupSim(){
     .force('center', d3.forceCenter(centerX, centerY))
     .force('collision', d3.forceCollide(30))
     .force('radial', d3.forceRadial(250, centerX, centerY).strength(0.2))
-    .force('drift', randomDrift(0.07))
-    .force('tagAttract', tagAttract(0.02));
-  simulation.alphaTarget(0.02);
+    .force('drift', randomDrift(0.1))
+    .force('tagAttract', tagAttract(0.05));
+  // Keep a bit more energy in the simulation so bubbles continue drifting
+  simulation.alphaTarget(0.05);
 }
 
 function updateAllTags(){
