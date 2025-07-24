@@ -1,4 +1,11 @@
-const { app, BrowserWindow, ipcMain, dialog, screen } = require('electron');
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  dialog,
+  screen,
+  Menu
+} = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -31,6 +38,33 @@ function createWindow () {
 
 app.whenReady().then(() => {
   createWindow();
+
+  // Build a minimal application menu containing only the "View" menu.
+  const isMac = process.platform === 'darwin';
+  const menuTemplate = [
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forcereload' },
+        { role: 'toggledevtools' },
+        { type: 'separator' },
+        { role: 'resetzoom' },
+        { role: 'zoomin' },
+        { role: 'zoomout' },
+        { type: 'separator' },
+        { role: 'togglefullscreen' }
+      ]
+    }
+  ];
+  if (isMac) {
+    menuTemplate.unshift({
+      label: app.name,
+      submenu: [{ role: 'quit' }]
+    });
+  }
+  const menu = Menu.buildFromTemplate(menuTemplate);
+  Menu.setApplicationMenu(menu);
 
   ipcMain.handle('load-contacts', () => {
     return loadContacts();
