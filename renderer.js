@@ -3,6 +3,7 @@ let contacts = [];
 let simulation;
 let searchTerm = '';
 let allTags = new Set();
+let tagCounts = new Map();
 let selectedFilterTags = [];
 let formSelectedTags = [];
 let focusedContact = null;
@@ -16,8 +17,14 @@ const height = window.innerHeight - 40;
 svg.attr('width', width).attr('height', height);
 let centerX = width/2;
 const centerY = height/2;
-const circleGroup = svg.select('#circleGroup');
-const linkGroup = svg.select('#linkGroup');
+const viewGroup = svg.select('#viewGroup');
+const circleGroup = viewGroup.select('#circleGroup');
+const linkGroup = viewGroup.select('#linkGroup');
+let zoomLevel = 1;
+let zoneRadii = (()=>{
+  const maxR = Math.min(width,height)/2 - 50;
+  return [maxR*0.3, maxR*0.6, maxR];
+})();
 
 function computeRadius(c){
   const name = (`${c.firstName} ${c.lastName}`.trim() || c.email || '');
@@ -26,7 +33,7 @@ function computeRadius(c){
   return Math.min(90, Math.max(25, base));
 }
 circleGroup.selectAll('circle')
-  .data([100,200,300])
+  .data(zoneRadii)
   .enter()
   .append('circle')
   .attr('cx', centerX)
@@ -40,7 +47,14 @@ function updateDimensions(){
   width = window.innerWidth - panelWidth - (sidePanelOpen ? sidePanelWidth : 0);
   centerX = width/2;
   svg.attr('width', width);
-  circleGroup.selectAll('circle').attr('cx', centerX).attr('cy', centerY);
+  const maxR = Math.min(width,height)/2 - 50;
+  zoneRadii = [maxR*0.3, maxR*0.6, maxR];
+  circleGroup.selectAll('circle')
+    .data(zoneRadii)
+    .attr('r', d=>d)
+    .attr('cx', centerX)
+    .attr('cy', centerY);
+  applyZoom(zoomLevel);
   if(simulation){
     simulation.force('center', d3.forceCenter(centerX, centerY));
     applyForces();
@@ -69,9 +83,14 @@ function updateMatchLevels(){
     contacts.forEach(c=>c.matchLevel=null);
   }else{
     contacts.forEach(c=>{
-      if(selectedFilterTags.every(t=>c.tags.includes(t))) c.matchLevel=2;
-      else if(selectedFilterTags.some(t=>c.tags.includes(t))) c.matchLevel=1;
-      else c.matchLevel=0;
+      const includesAll = selectedFilterTags.every(t=>c.tags.includes(t));
+      if(includesAll && c.tags.length === selectedFilterTags.length) {
+        c.matchLevel = 2;
+      } else if(includesAll || selectedFilterTags.some(t=>c.tags.includes(t))) {
+        c.matchLevel = 1;
+      } else {
+        c.matchLevel = 0;
+      }
     });
   }
 }
@@ -98,11 +117,11 @@ function updateLinks(){
 
 function applyForces(){
   if(selectedFilterTags.length===0){
-    simulation.force('radial', d3.forceRadial(250, centerX, centerY).strength(0.2));
+    simulation.force('radial', d3.forceRadial(zoneRadii[2], centerX, centerY).strength(0.2));
     circleGroup.selectAll('circle').style('display',(d,i)=>i===2?'block':'none');
   }else{
     simulation.force('radial', d3.forceRadial(d=>{
-      return d.matchLevel===2?50:d.matchLevel===1?150:250;
+      return d.matchLevel===2?zoneRadii[0]:d.matchLevel===1?zoneRadii[1]:zoneRadii[2];
     }, centerX, centerY).strength(0.4));
     circleGroup.selectAll('circle').style('display','block');
   }
@@ -239,24 +258,28 @@ function setupSim(){
 
 function updateAllTags(){
   allTags = new Set();
-  contacts.forEach(c=>c.tags.forEach(t=>allTags.add(t)));
+  tagCounts = new Map();
+  contacts.forEach(c=>{
+    c.tags.forEach(t=>{
+      allTags.add(t);
+      tagCounts.set(t, (tagCounts.get(t)||0)+1);
+    });
+  });
 }
 
 function renderTagPanel(){
   updateAllTags();
   const tags = Array.from(allTags);
   tags.sort((a,b)=>{
-    const aSel = selectedFilterTags.includes(a);
-    const bSel = selectedFilterTags.includes(b);
-    if(aSel && !bSel) return -1;
-    if(!aSel && bSel) return 1;
+    const diff = (tagCounts.get(b)||0) - (tagCounts.get(a)||0);
+    if(diff!==0) return diff;
     return a.localeCompare(b);
   });
   const panel = d3.select('#tagList').selectAll('div.tag-box').data(tags, d=>d);
   const enter = panel.enter().append('div').attr('class','tag-box');
   enter.merge(panel)
     .classed('selected', d=>selectedFilterTags.includes(d))
-    .text(d=>d)
+    .text(d=>`${d} (${tagCounts.get(d)||0})`)
     .on('click',(event,d)=>toggleFilterTag(d));
   panel.exit().remove();
 }
@@ -280,6 +303,8 @@ function renderTagOptions(){
   const tags = Array.from(allTags).sort();
   const active = tags.filter(t=>formSelectedTags.includes(t));
   const inactive = tags.filter(t=>!formSelectedTags.includes(t));
+  active.sort();
+  inactive.sort();
 
   const activeSel = d3.select('#active-tags').selectAll('div.tag-box').data(active,d=>d);
   const activeEnter = activeSel.enter().append('div').attr('class','tag-box selected');
@@ -361,8 +386,10 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
   const newTagInput = document.getElementById('newTag');
   const pendingTag = newTagInput.value.trim();
   if(pendingTag){
-    allTags.add(pendingTag);
-    if(!formSelectedTags.includes(pendingTag)) formSelectedTags.push(pendingTag);
+    pendingTag.split(/[,;]+/).map(t=>t.trim()).filter(Boolean).forEach(t=>{
+      allTags.add(t);
+      if(!formSelectedTags.includes(t)) formSelectedTags.push(t);
+    });
     newTagInput.value = '';
   }
   const id = document.getElementById('contact-id').value;
@@ -377,6 +404,10 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
     company: document.getElementById('company').value,
     tags: formSelectedTags.slice()
   };
+  if(c.company && !c.tags.includes(c.company)){
+    c.tags.push(c.company);
+    allTags.add(c.company);
+  }
   c.radius = computeRadius(c);
   if(id){
     const idx = contacts.findIndex(x=>x.id===id);
@@ -422,6 +453,7 @@ async function load(){
   renderTagPanel();
   render();
   updateLinks();
+  applyZoom(zoomLevel);
 }
 
 async function importCsv(){
@@ -494,6 +526,31 @@ if(exportBtn) exportBtn.addEventListener('click', exportCsv);
 const searchInput = document.getElementById('search');
 const searchResults = document.getElementById('search-results');
 let resultsHovered = false;
+const zoomSlider = document.getElementById('zoom-slider');
+const zoomDisplay = document.getElementById('zoom-display');
+
+function applyZoom(level){
+  zoomLevel = Math.min(2, Math.max(0.5, level));
+  viewGroup.attr('transform', `translate(${centerX*(1-zoomLevel)},${centerY*(1-zoomLevel)}) scale(${zoomLevel})`);
+  if(zoomSlider){
+    zoomSlider.value = Math.round(zoomLevel*100);
+  }
+  if(zoomDisplay){
+    zoomDisplay.textContent = `${Math.round(zoomLevel*100)}%`;
+  }
+}
+
+if(zoomSlider){
+  zoomSlider.addEventListener('input', e=>{
+    applyZoom(e.target.value/100);
+  });
+}
+
+svg.node().addEventListener('wheel', e=>{
+  e.preventDefault();
+  const delta = e.deltaY < 0 ? 0.1 : -0.1;
+  applyZoom(zoomLevel + delta);
+});
 
 function clearSearch(){
   searchTerm = '';
@@ -543,10 +600,12 @@ searchResults.addEventListener('mouseleave',()=>{ resultsHovered = false; clearS
 document.getElementById('newTag').addEventListener('keydown',e=>{
   if(e.key === 'Enter'){
     e.preventDefault();
-    const tag = e.target.value.trim();
-    if(tag){
-      allTags.add(tag);
-      if(!formSelectedTags.includes(tag)) formSelectedTags.push(tag);
+    const tags = e.target.value.trim();
+    if(tags){
+      tags.split(/[,;]+/).map(t=>t.trim()).filter(Boolean).forEach(t=>{
+        allTags.add(t);
+        if(!formSelectedTags.includes(t)) formSelectedTags.push(t);
+      });
       renderTagOptions();
       renderTagPanel();
     }
@@ -555,7 +614,15 @@ document.getElementById('newTag').addEventListener('keydown',e=>{
 });
 
 
-window.addEventListener('resize', updateDimensions);
+window.addEventListener('resize', () => {
+  updateDimensions();
+  render();
+});
+
+ipcRenderer.on('window-resized', () => {
+  updateDimensions();
+  render();
+});
 
 ipcRenderer.on('menu-import', importCsv);
 ipcRenderer.on('menu-export', exportCsv);
