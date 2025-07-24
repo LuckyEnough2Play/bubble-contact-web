@@ -203,6 +203,12 @@ function focusFromBubble(contact){
 
 function render() {
   sanitizeContacts();
+  // Remove orphaned SVG elements not backed by contact data
+  contactGroup.selectAll('g.contact')
+    .data(contacts, d => d.id)
+    .exit()
+    .remove();
+
   updateMatchLevels();
   updateLinks();
   applyForces();
@@ -235,10 +241,15 @@ function render() {
       return d.matchLevel===2?1:d.matchLevel===1?0.6:0.1;
     });
 
-  const validContacts = contactGroup.selectAll('g.contact').data();
-  simulation.nodes(validContacts).on('tick', ticked).alpha(1).restart();
-  console.log('Simulating', simulation.nodes().length, 'nodes');
-  console.log('Rendering', validContacts.length, 'contacts');
+  // FULL simulation reset to eliminate ghost particles
+  simulation.stop();
+  simulation.nodes([]);
+  simulation.nodes(contacts);
+  simulation.on('tick', ticked);
+  simulation.alpha(1).restart();
+
+  console.log('Rendering contacts:', contacts.length);
+  console.log('Simulation nodes:', simulation.nodes().length);
 }
 
 function ticked(){
