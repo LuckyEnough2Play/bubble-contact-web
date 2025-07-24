@@ -58,6 +58,37 @@ function createBubbleGradient(id){
   grad.append('stop').attr('offset','75%').attr('stop-color',colorMid);
   grad.append('stop').attr('offset','100%').attr('stop-color',color2);
 }
+
+function sanitizeContacts(){
+  const seen = new Set();
+  contacts = contacts.filter(c=>{
+    if(!c || !c.id) return false;
+    const hasName = c.firstName || c.lastName || c.email;
+    if(!hasName) return false;
+    if(seen.has(c.id)) return false;
+    seen.add(c.id);
+    if(!c.radius) c.radius = computeRadius(c);
+    if(!c.gradientId){
+      c.gradientId = 'grad-'+c.id;
+      createBubbleGradient(c.gradientId);
+    }
+    return true;
+  });
+}
+
+function applyMarbleStyle(sel){
+  sel.select('circle.bubble-circle')
+    .attr('fill', d=>`url(#${d.gradientId})`)
+    .attr('filter','url(#marbleShadow)')
+    .attr('r', d=>d.radius);
+  sel.select('circle.bubble-highlight')
+    .attr('fill','url(#bubbleHighlight)')
+    .attr('r', d=>d.radius);
+  sel.select('text')
+    .style('fill','#fff')
+    .style('font-weight','bold')
+    .style('text-shadow','0 0 3px rgba(0,0,0,0.7)');
+}
 circleGroup.selectAll('circle')
   .data(zoneRadii)
   .enter()
@@ -171,6 +202,7 @@ function focusFromBubble(contact){
 }
 
 function render() {
+  sanitizeContacts();
   updateMatchLevels();
   updateLinks();
   applyForces();
@@ -178,29 +210,21 @@ function render() {
   const nodes = contactGroup.selectAll('g.contact').data(contacts, d => d.id);
 
   const enter = nodes.enter().append('g').attr('class','contact');
-  enter.append('circle')
-    .attr('class','bubble-circle')
-    .attr('r',d=>d.radius)
-    .attr('fill',d=>`url(#${d.gradientId})`)
-    .attr('filter','url(#marbleShadow)');
-  enter.append('circle')
-    .attr('class','bubble-highlight')
-    .attr('r',d=>d.radius)
-    .attr('fill','url(#bubbleHighlight)');
-  enter.append('text').attr('text-anchor','middle').attr('dy',5).text(d=>`${d.firstName} ${d.lastName}`.trim());
+  enter.append('circle').attr('class','bubble-circle');
+  enter.append('circle').attr('class','bubble-highlight');
+  enter.append('text').attr('text-anchor','middle').attr('dy',5);
+  applyMarbleStyle(enter);
 
   const merged = enter.merge(nodes);
   merged.on('click', (event,d)=>{ focusFromBubble(d); openForm(d); })
     .call(dragBehavior());
   merged.select('text').text(d=>`${d.firstName} ${d.lastName}`.trim());
+  applyMarbleStyle(merged);
   merged.select('circle.bubble-circle')
-    .attr('r', d=>d.radius)
     .attr('fill', d => {
-    if(selectedFilterTags.length && d.matchLevel === 2) return 'url(#marbleGold)';
-    return `url(#${d.gradientId})`;
-  });
-  merged.select('circle.bubble-highlight')
-    .attr('r', d=>d.radius);
+      if(selectedFilterTags.length && d.matchLevel === 2) return 'url(#marbleGold)';
+      return `url(#${d.gradientId})`;
+    });
 
   nodes.exit().remove();
 
@@ -475,6 +499,7 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
     c.y = centerY;
     contacts.push(c);
   }
+  sanitizeContacts();
   ipcRenderer.send('save-contacts', contacts);
   renderTagPanel();
   closeForm();
@@ -504,6 +529,7 @@ async function load(){
     c.gradientId = 'grad-'+c.id;
     createBubbleGradient(c.gradientId);
   });
+  sanitizeContacts();
   setupSim();
   updateAllTags();
   renderTagPanel();
@@ -551,6 +577,7 @@ async function importCsv(){
     createBubbleGradient(c.gradientId);
     contacts.push(c);
   });
+  sanitizeContacts();
   ipcRenderer.send('save-contacts', contacts);
   updateAllTags();
   renderTagPanel();
