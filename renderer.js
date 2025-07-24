@@ -384,8 +384,10 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
     c.y = contacts[idx].y;
     contacts[idx]=c;
   }else{
-    c.x = width - 60;
-    c.y = height - 60;
+    // Start new contacts in the primary center position so they are
+    // easy to locate immediately after saving.
+    c.x = centerX;
+    c.y = centerY;
     contacts.push(c);
   }
   ipcRenderer.send('save-contacts', contacts);
