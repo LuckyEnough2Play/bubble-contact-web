@@ -81,6 +81,37 @@
       body.dark #contacts-list div:hover {
         background:#555;
       }
+      .suggest-container { position:relative; }
+      #tag-suggestions,#company-suggestions {
+        position:absolute;
+        top:100%;
+        left:0;
+        right:0;
+        background:#fff;
+        color:#000;
+        border:1px solid #ccc;
+        max-height:200px;
+        overflow-y:auto;
+        display:none;
+        z-index:1000;
+      }
+      body.dark #tag-suggestions,
+      body.dark #company-suggestions {
+        background:#444;
+        color:#fff;
+        border-color:#666;
+      }
+      #tag-suggestions div,#company-suggestions div {
+        padding:4px 8px;
+        cursor:pointer;
+      }
+      #tag-suggestions div:hover,#company-suggestions div:hover {
+        background:#ddd;
+      }
+      body.dark #tag-suggestions div:hover,
+      body.dark #company-suggestions div:hover {
+        background:#555;
+      }
       #viz,#bubbleCanvas {
         width:calc(100% - 225px);
         min-height:calc(100vh - 40px); /* still fill initial view */
@@ -325,11 +356,17 @@
       </div>
       <div class="form-group">
         <label>Company:</label>
-        <input id="company" type="text" />
+        <div class="suggest-container">
+          <input id="company" type="text" />
+          <div id="company-suggestions"></div>
+        </div>
       </div>
       <div class="form-group">
         <label>Tags:</label>
-        <input id="newTag" type="text" placeholder="Add tag" />
+        <div class="suggest-container">
+          <input id="newTag" type="text" placeholder="Add tag" />
+          <div id="tag-suggestions"></div>
+        </div>
       </div>
       <div class="form-group">
         <label>Active Tags:</label>
