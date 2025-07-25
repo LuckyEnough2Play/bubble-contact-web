@@ -384,15 +384,25 @@ function renderTagPanel(){
   });
   const panel = d3.select('#tagList').selectAll('div.tag-box').data(tags, d=>d);
   const enter = panel.enter().append('div').attr('class','tag-box');
-  enter.merge(panel)
+  enter.append('span').attr('class','tag-name');
+  enter.append('span').attr('class','delete-tag').text('\u00d7');
+
+  const merged = enter.merge(panel);
+  merged
     .classed('selected', d=>selectedFilterTags.includes(d))
     .classed('disabled', d=>{
       const tagList = selectedFilterTags.slice();
       if(!tagList.includes(d)) tagList.push(d);
       return countContactsForTags(tagList) === 0;
     })
-    .text(d=>`${d} (${tagCounts.get(d)||0})`)
     .on('click',(event,d)=>toggleFilterTag(d));
+
+  merged.select('span.tag-name')
+    .text(d=>`${d} (${tagCounts.get(d)||0})`);
+
+  merged.select('span.delete-tag')
+    .on('click', (event,d)=>{ event.stopPropagation(); deleteTag(d); });
+
   panel.exit().remove();
 }
 
@@ -402,6 +412,21 @@ function toggleFilterTag(tag){
   focusedContact = null;
   renderTagPanel();
   render();
+}
+
+function deleteTag(tag){
+  if(!confirm(`Delete the tag "${tag}" from all contacts?`)) return;
+  contacts.forEach(c=>{
+    const idx = c.tags.indexOf(tag);
+    if(idx!==-1) c.tags.splice(idx,1);
+  });
+  selectedFilterTags = selectedFilterTags.filter(t=>t!==tag);
+  formSelectedTags = formSelectedTags.filter(t=>t!==tag);
+  ipcRenderer.send('save-contacts', contacts);
+  renderTagPanel();
+  renderTagOptions();
+  render();
+  updateLinks();
 }
 
 function clearFilterTags(){
