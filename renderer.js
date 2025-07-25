@@ -240,6 +240,7 @@ function render() {
   merged.select('circle.bubble-circle')
     .attr('fill', d => {
       if(selectedFilterTags.length && d.matchLevel === 2) return 'url(#marbleGold)';
+      if(selectedFilterTags.length && d.matchLevel === 0) return 'url(#marbleGrey)';
       return `url(#${d.gradientId})`;
     });
 
@@ -267,7 +268,7 @@ function render() {
   contactGroup.selectAll('g.contact').selectAll('circle')
     .style('opacity', d => {
       if(selectedFilterTags.length === 0) return 1;
-      return d.matchLevel === 2 ? 1 : d.matchLevel === 1 ? 0.6 : 0.1;
+      return d.matchLevel === 2 ? 1 : d.matchLevel === 1 ? 0.6 : 0.2;
     });
 
   // FULL simulation reset to eliminate ghost particles
