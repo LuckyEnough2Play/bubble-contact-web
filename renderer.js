@@ -33,6 +33,27 @@ let zoneRadii = (()=>{
   return [maxR*0.3, maxR*0.6, maxR];
 })();
 
+function confirmDialog(message){
+  return new Promise(resolve => {
+    const overlay = document.getElementById('confirm-overlay');
+    const msg = document.getElementById('confirm-message');
+    const okBtn = document.getElementById('confirm-ok');
+    const cancelBtn = document.getElementById('confirm-cancel');
+    msg.textContent = message;
+    overlay.style.display = 'flex';
+    const cleanup = (result) => {
+      overlay.style.display = 'none';
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      resolve(result);
+    };
+    const onOk = () => cleanup(true);
+    const onCancel = () => cleanup(false);
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+  });
+}
+
 function computeRadius(c){
   const name = (
     `${c.firstName} ${c.nickname||''} ${c.lastName}`.replace(/\s+/g,' ').trim() ||
@@ -416,8 +437,9 @@ function toggleFilterTag(tag){
   render();
 }
 
-function deleteTag(tag){
-  if(!confirm(`Delete the tag "${tag}" from all contacts?`)) return;
+async function deleteTag(tag){
+  const confirmed = await confirmDialog(`Delete the tag "${tag}" from all contacts?`);
+  if(!confirmed) return;
   contacts.forEach(c=>{
     const idx = c.tags.indexOf(tag);
     if(idx!==-1) c.tags.splice(idx,1);
@@ -505,10 +527,11 @@ function closeForm(){
   document.getElementById('sidepanel').classList.remove('open');
 }
 
-function deleteContact(){
+async function deleteContact(){
   const id = document.getElementById('contact-id').value;
   if(!id) { closeForm(); return; }
-  if(!confirm('Delete this contact?')) return;
+  const confirmed = await confirmDialog('Delete this contact?');
+  if(!confirmed) return;
   const idx = contacts.findIndex(c=>c.id===id);
   if(idx!==-1){
     contacts.splice(idx,1);

@@ -282,6 +282,35 @@
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
       }
+      #confirm-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.6);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 4000;
+      }
+      #confirm-dialog {
+        background: #fff;
+        color: #000;
+        padding: 20px;
+        border-radius: 8px;
+        width: 280px;
+        max-width: 90%;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+        text-align: center;
+      }
+      body.dark #confirm-dialog {
+        background: #2b2b2b;
+        color: #fff;
+      }
+      #confirm-dialog button {
+        margin: 0 10px;
+      }
     </style>
 </head>
 <body>
@@ -392,6 +421,15 @@
       <button type="submit">Save</button>
       <button id="delete-contact" type="button">Delete</button>
     </form>
+  </div>
+  <div id="confirm-overlay">
+    <div id="confirm-dialog">
+      <div id="confirm-message"></div>
+      <div style="margin-top:15px;">
+        <button id="confirm-ok">Yes</button>
+        <button id="confirm-cancel">No</button>
+      </div>
+    </div>
   </div>
   <script>
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
