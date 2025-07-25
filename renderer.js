@@ -464,6 +464,7 @@ function deleteContact(){
   if(idx!==-1){
     contacts.splice(idx,1);
     ipcRenderer.send('save-contacts', contacts);
+    updateContactCount();
     renderTagPanel();
     closeForm();
     render();
@@ -534,6 +535,7 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
     contacts.push(c);
   }
   sanitizeContacts();
+  updateContactCount();
   ipcRenderer.send('save-contacts', contacts);
   renderTagPanel();
   closeForm();
@@ -564,6 +566,7 @@ async function load(){
     createBubbleGradient(c.gradientId);
   });
   sanitizeContacts();
+  updateContactCount();
   setupSim();
   updateAllTags();
   renderTagPanel();
@@ -612,6 +615,7 @@ async function importCsv(){
     contacts.push(c);
   });
   sanitizeContacts();
+  updateContactCount();
   ipcRenderer.send('save-contacts', contacts);
   updateAllTags();
   renderTagPanel();
@@ -648,6 +652,9 @@ let resultsHovered = false;
 const zoomSlider = document.getElementById('zoom-slider');
 const zoomDisplay = document.getElementById('zoom-display');
 const zoomResetBtn = document.getElementById('zoom-reset');
+const contactsToggle = document.getElementById('contacts-toggle');
+const contactsList = document.getElementById('contacts-list');
+const contactCountSpan = document.getElementById('contact-count');
 
 function applyZoom(level){
   zoomLevel = Math.min(2, Math.max(0.5, level));
@@ -731,6 +738,30 @@ function updateSearchResults(){
   searchResults.style.display = matches.length? 'block' : 'none';
 }
 
+function updateContactCount(){
+  if(contactCountSpan) contactCountSpan.textContent = contacts.length;
+}
+
+function buildContactsList(){
+  if(!contactsList) return;
+  contactsList.innerHTML = '';
+  const sorted = contacts.slice().sort((a,b)=>{
+    return (a.firstName||'').localeCompare(b.firstName||'');
+  });
+  sorted.forEach(c=>{
+    const div = document.createElement('div');
+    const name = `${c.firstName} ${c.lastName}`.trim() || c.email;
+    div.textContent = name;
+    div.addEventListener('click',()=>{
+      contactsList.style.display = 'none';
+      focusFromBubble(c);
+      openForm(c);
+      render();
+    });
+    contactsList.appendChild(div);
+  });
+}
+
 searchInput.addEventListener('input', e=>{
   searchTerm = e.target.value;
   render();
@@ -743,6 +774,25 @@ searchInput.addEventListener('blur', ()=>{
 
 searchResults.addEventListener('mouseenter',()=>{ resultsHovered = true; });
 searchResults.addEventListener('mouseleave',()=>{ resultsHovered = false; clearSearch(); render(); });
+
+if(contactsToggle){
+  contactsToggle.addEventListener('click',()=>{
+    if(!contactsList) return;
+    const visible = contactsList.style.display === 'block';
+    if(visible){
+      contactsList.style.display = 'none';
+    }else{
+      buildContactsList();
+      contactsList.style.display = 'block';
+    }
+  });
+}
+
+document.addEventListener('click', e=>{
+  if(contactsList && contactsList.style.display === 'block' && !e.target.closest('#contacts-container')){
+    contactsList.style.display = 'none';
+  }
+});
 
 document.getElementById('newTag').addEventListener('keydown',e=>{
   if(e.key === 'Enter'){
