@@ -32,7 +32,11 @@ let zoneRadii = (()=>{
 })();
 
 function computeRadius(c){
-  const name = (`${c.firstName} ${c.lastName}`.trim() || c.email || '');
+  const name = (
+    `${c.firstName} ${c.nickname||''} ${c.lastName}`.replace(/\s+/g,' ').trim() ||
+    c.email ||
+    ''
+  );
   const len = name.length;
   const base = len * 4 + 8; // approximate text width plus a small margin
   return Math.min(90, Math.max(25, base));
@@ -65,7 +69,7 @@ function sanitizeContacts(){
   const seen = new Set();
   contacts = contacts.filter(c=>{
     if(!c || !c.id) return false;
-    const hasName = c.firstName || c.lastName || c.email;
+    const hasName = c.firstName || c.nickname || c.lastName || c.email;
     if(!hasName) return false;
     if(seen.has(c.id)) return false;
     seen.add(c.id);
@@ -126,6 +130,7 @@ function matchesSearch(d){
   const t = searchTerm.toLowerCase();
   return (
     d.firstName.toLowerCase().includes(t) ||
+    d.nickname.toLowerCase().includes(t) ||
     d.lastName.toLowerCase().includes(t) ||
     d.email.toLowerCase().includes(t) ||
     d.phone.toLowerCase().includes(t) ||
@@ -226,7 +231,10 @@ function render() {
   const merged = enter.merge(nodes);
   merged.on('click', (event,d)=>{ focusFromBubble(d); openForm(d); })
     .call(dragBehavior());
-  merged.select('text').text(d=>`${d.firstName} ${d.lastName}`.trim());
+  merged.select('text').text(d=>{
+    const name = `${d.firstName} ${d.nickname||''} ${d.lastName}`;
+    return name.replace(/\s+/g,' ').trim();
+  });
   applyMarbleStyle(merged);
   merged.select('circle.bubble-circle')
     .attr('fill', d => {
@@ -446,6 +454,7 @@ function openForm(contact){
   document.getElementById('sidepanel').classList.add('open');
   document.getElementById('contact-id').value = contact ? contact.id : '';
   document.getElementById('firstName').value = contact?contact.firstName:'';
+  document.getElementById('nickname').value = contact?contact.nickname||'':'';
   document.getElementById('lastName').value = contact?contact.lastName:'';
   document.getElementById('email').value = contact?contact.email:'';
   document.getElementById('phone').value = contact?contact.phone||'':'';
@@ -516,6 +525,7 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
   const c = {
     id: id || Date.now().toString(),
     firstName: document.getElementById('firstName').value,
+    nickname: document.getElementById('nickname').value,
     lastName: document.getElementById('lastName').value,
     email: document.getElementById('email').value,
     phone: document.getElementById('phone').value,
@@ -559,6 +569,7 @@ async function load(){
     contacts.push({
       id: Date.now().toString(),
       firstName:'John',
+      nickname:'Johnny',
       lastName:'Doe',
       email:'john@example.com',
       phone:'555-1234',
@@ -594,21 +605,23 @@ async function importCsv(){
     const cols = line.split(',');
     const obj = {};
     headers.forEach((h,i)=>obj[h]=cols[i]);
-    const c = {
-      id: Date.now().toString()+Math.random(),
-      firstName:'',
-      lastName:'',
-      email:'',
-      phone:'',
-      address:'',
-      title:'',
-      company:'',
-      tags:[]
+  const c = {
+    id: Date.now().toString()+Math.random(),
+    firstName:'',
+    nickname:'',
+    lastName:'',
+    email:'',
+    phone:'',
+    address:'',
+    title:'',
+    company:'',
+    tags:[]
     };
     headers.forEach((h,i)=>{
       const v = cols[i]||'';
       const lower = h.toLowerCase();
       if(lower === 'first name') c.firstName = v;
+      else if(lower === 'nickname') c.nickname = v;
       else if(lower === 'last name') c.lastName = v;
       else if(lower.includes('email')) c.email = v;
       else if(lower.includes('phone')) c.phone = v;
@@ -635,10 +648,11 @@ async function importCsv(){
 
 
 async function exportCsv(){
-  const header = ['First Name','Last Name','E-mail Address','Business Phone','Business Street','Company','Job Title','Categories'];
+  const header = ['First Name','Nickname','Last Name','E-mail Address','Business Phone','Business Street','Company','Job Title','Categories'];
   const lines = contacts.map(c=>{
     return [
       c.firstName,
+      c.nickname||'',
       c.lastName,
       c.email,
       c.phone||'',
@@ -735,7 +749,7 @@ function updateSearchResults(){
   const matches = contacts.filter(matchesSearch).slice(0,5);
   matches.forEach(c=>{
     const div = document.createElement('div');
-    const name = `${c.firstName} ${c.lastName}`.trim() || c.email;
+    const name = `${c.firstName} ${c.nickname||''} ${c.lastName}`.replace(/\s+/g,' ').trim() || c.email;
     div.textContent = name;
     div.addEventListener('click',()=>{
       clearSearch();
@@ -760,7 +774,7 @@ function buildContactsList(){
   });
   sorted.forEach(c=>{
     const div = document.createElement('div');
-    const name = `${c.firstName} ${c.lastName}`.trim() || c.email;
+    const name = `${c.firstName} ${c.nickname||''} ${c.lastName}`.replace(/\s+/g,' ').trim() || c.email;
     div.textContent = name;
     div.addEventListener('click',()=>{
       contactsList.style.display = 'none';
