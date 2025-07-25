@@ -4,6 +4,7 @@ let simulation;
 let searchTerm = '';
 let allTags = new Set();
 let tagCounts = new Map();
+let allCompanies = new Set();
 let selectedFilterTags = [];
 let formSelectedTags = [];
 let focusedContact = null;
@@ -358,7 +359,9 @@ function setupSim(){
 function updateAllTags(){
   allTags = new Set();
   tagCounts = new Map();
+  allCompanies = new Set();
   contacts.forEach(c=>{
+    if(c.company) allCompanies.add(c.company);
     c.tags.forEach(t=>{
       allTags.add(t);
       tagCounts.set(t, (tagCounts.get(t)||0)+1);
@@ -679,6 +682,12 @@ const zoomResetBtn = document.getElementById('zoom-reset');
 const contactsToggle = document.getElementById('contacts-toggle');
 const contactsList = document.getElementById('contacts-list');
 const contactCountSpan = document.getElementById('contact-count');
+const tagInput = document.getElementById('newTag');
+const tagSuggestions = document.getElementById('tag-suggestions');
+let tagHovered = false;
+const companyInput = document.getElementById('company');
+const companySuggestions = document.getElementById('company-suggestions');
+let companyHovered = false;
 
 function applyZoom(level){
   zoomLevel = Math.min(2, Math.max(0.5, level));
@@ -786,6 +795,57 @@ function buildContactsList(){
   });
 }
 
+function updateTagSuggestions(){
+  if(!tagSuggestions) return;
+  tagSuggestions.innerHTML = '';
+  const term = tagInput.value.trim().toLowerCase();
+  if(!term){
+    tagSuggestions.style.display = 'none';
+    return;
+  }
+  const matches = Array.from(allTags)
+    .filter(t => t.toLowerCase().includes(term) && !formSelectedTags.includes(t))
+    .slice(0,5);
+  matches.forEach(t => {
+    const div = document.createElement('div');
+    div.textContent = t;
+    div.addEventListener('mousedown', e => {
+      e.preventDefault();
+      if(!formSelectedTags.includes(t)) formSelectedTags.push(t);
+      renderTagOptions();
+      renderTagPanel();
+      tagInput.value = '';
+      tagSuggestions.style.display = 'none';
+    });
+    tagSuggestions.appendChild(div);
+  });
+  tagSuggestions.style.display = matches.length ? 'block' : 'none';
+}
+
+function updateCompanySuggestions(){
+  if(!companySuggestions) return;
+  companySuggestions.innerHTML = '';
+  const term = companyInput.value.trim().toLowerCase();
+  if(!term){
+    companySuggestions.style.display = 'none';
+    return;
+  }
+  const matches = Array.from(allCompanies)
+    .filter(c => c.toLowerCase().includes(term))
+    .slice(0,5);
+  matches.forEach(name => {
+    const div = document.createElement('div');
+    div.textContent = name;
+    div.addEventListener('mousedown', e => {
+      e.preventDefault();
+      companyInput.value = name;
+      companySuggestions.style.display = 'none';
+    });
+    companySuggestions.appendChild(div);
+  });
+  companySuggestions.style.display = matches.length ? 'block' : 'none';
+}
+
 searchInput.addEventListener('input', e=>{
   searchTerm = e.target.value;
   render();
@@ -798,6 +858,20 @@ searchInput.addEventListener('blur', ()=>{
 
 searchResults.addEventListener('mouseenter',()=>{ resultsHovered = true; });
 searchResults.addEventListener('mouseleave',()=>{ resultsHovered = false; clearSearch(); render(); });
+
+tagInput.addEventListener('input', updateTagSuggestions);
+tagInput.addEventListener('blur', () => {
+  setTimeout(() => { if(!tagHovered){ tagSuggestions.style.display = 'none'; } }, 100);
+});
+tagSuggestions.addEventListener('mouseenter', () => { tagHovered = true; });
+tagSuggestions.addEventListener('mouseleave', () => { tagHovered = false; tagSuggestions.style.display = 'none'; });
+
+companyInput.addEventListener('input', updateCompanySuggestions);
+companyInput.addEventListener('blur', () => {
+  setTimeout(() => { if(!companyHovered){ companySuggestions.style.display = 'none'; } }, 100);
+});
+companySuggestions.addEventListener('mouseenter', () => { companyHovered = true; });
+companySuggestions.addEventListener('mouseleave', () => { companyHovered = false; companySuggestions.style.display = 'none'; });
 
 if(contactsToggle){
   contactsToggle.addEventListener('click',()=>{
