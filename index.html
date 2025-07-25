@@ -158,7 +158,10 @@
         float:right;
         cursor:pointer;
       }
-      .form-group { margin-bottom:10px; }
+      .form-group {
+        margin-bottom:10px;
+        flex-shrink: 0; /* allow panel to scroll when content grows */
+      }
       label { display:block; margin-bottom:4px; }
       input[type=text] {
         width:100%;
