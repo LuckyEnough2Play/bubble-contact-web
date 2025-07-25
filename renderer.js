@@ -358,6 +358,11 @@ function updateAllTags(){
   });
 }
 
+function countContactsForTags(tags){
+  const unique = Array.from(new Set(tags));
+  return contacts.filter(c=>unique.every(t=>c.tags.includes(t))).length;
+}
+
 function renderTagPanel(){
   updateAllTags();
   const tags = Array.from(allTags);
@@ -370,6 +375,11 @@ function renderTagPanel(){
   const enter = panel.enter().append('div').attr('class','tag-box');
   enter.merge(panel)
     .classed('selected', d=>selectedFilterTags.includes(d))
+    .classed('disabled', d=>{
+      const tagList = selectedFilterTags.slice();
+      if(!tagList.includes(d)) tagList.push(d);
+      return countContactsForTags(tagList) === 0;
+    })
     .text(d=>`${d} (${tagCounts.get(d)||0})`)
     .on('click',(event,d)=>toggleFilterTag(d));
   panel.exit().remove();
