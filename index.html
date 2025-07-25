@@ -226,11 +226,17 @@
         margin:4px;
         font-size:0.85em;
         cursor:pointer;
+        position:relative;
       }
       .tag-box.selected { background-color:gold; color:black; }
       .tag-box.disabled {
         background-color:#777;
         color:#ccc;
+      }
+      .tag-box .delete-tag {
+        margin-left:6px;
+        color:#ff6666;
+        cursor:pointer;
       }
       .tag-area { display:flex; flex-wrap:wrap; }
       #tagList { display:flex; flex-wrap:wrap; }
