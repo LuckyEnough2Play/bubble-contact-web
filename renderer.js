@@ -230,7 +230,12 @@ function render() {
   applyMarbleStyle(enter);
 
   const merged = enter.merge(nodes);
-  merged.on('click', (event,d)=>{ focusFromBubble(d); openForm(d); })
+  merged.on('click', (event,d)=>{
+    if(contactsList) contactsList.style.display = 'none';
+    focusFromBubble(d);
+    openForm(d);
+    render();
+  })
     .call(dragBehavior());
   merged.select('text').text(d=>{
     const name = `${d.firstName} ${d.nickname||''} ${d.lastName}`;
