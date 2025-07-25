@@ -13,6 +13,7 @@ const panelWidth = 225;
 const sidePanelWidth = 300;
 let sidePanelOpen = false;
 const svg = d3.select('#bubbleCanvas');
+const TAG_BLUE = '#3a6ea5';
 let width = window.innerWidth - panelWidth;
 const height = window.innerHeight - 40;
 svg.attr('width', width).attr('height', height);
@@ -45,25 +46,20 @@ function computeRadius(c){
 
 function createBubbleGradient(id){
   const defs = svg.select('defs');
-  const cx = 20 + Math.random()*60;
-  const cy = 20 + Math.random()*60;
   const grad = defs.append('radialGradient')
     .attr('id', id)
-    .attr('cx', `${cx}%`)
-    .attr('cy', `${cy}%`)
-    .attr('r', '70%');
-  // Generate complementary colors for a more cohesive palette.
-  const hue1 = Math.random() * 360;
-  const hue2 = (hue1 + 180) % 360; // exact complementary hue
-  const color1 = d3.hsl(hue1, 0.7, 0.6).toString();
-  const color2 = d3.hsl(hue2, 0.7, 0.4).toString();
-  // Midpoint hue between the two complements to smooth the gradient
-  const midHue = (hue1 + hue2) / 2;
-  const colorMid = d3.hsl(midHue, 0.8, 0.5).toString();
-  grad.append('stop').attr('offset','0%').attr('stop-color','rgba(255,255,255,0.9)');
-  grad.append('stop').attr('offset','50%').attr('stop-color',color1);
-  grad.append('stop').attr('offset','75%').attr('stop-color',colorMid);
-  grad.append('stop').attr('offset','100%').attr('stop-color',color2);
+    .attr('cx', '35%')
+    .attr('cy', '35%')
+    .attr('r', '65%');
+  grad.append('stop')
+    .attr('offset', '0%')
+    .attr('stop-color', 'rgba(255,255,255,0.9)');
+  grad.append('stop')
+    .attr('offset', '70%')
+    .attr('stop-color', TAG_BLUE);
+  grad.append('stop')
+    .attr('offset', '100%')
+    .attr('stop-color', 'rgba(58,110,165,0)');
 }
 
 function sanitizeContacts(){
