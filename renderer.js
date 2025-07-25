@@ -253,10 +253,12 @@ function render() {
     .remove();
 
   contactGroup.selectAll('g.contact')
-    .style('display',d=> matchesSearch(d)? null : 'none')
-    .style('opacity', d=>{
-      if(selectedFilterTags.length===0) return 1;
-      return d.matchLevel===2?1:d.matchLevel===1?0.6:0.1;
+    .style('display', d => matchesSearch(d) ? null : 'none');
+
+  contactGroup.selectAll('g.contact').selectAll('circle')
+    .style('opacity', d => {
+      if(selectedFilterTags.length === 0) return 1;
+      return d.matchLevel === 2 ? 1 : d.matchLevel === 1 ? 0.6 : 0.1;
     });
 
   // FULL simulation reset to eliminate ghost particles
