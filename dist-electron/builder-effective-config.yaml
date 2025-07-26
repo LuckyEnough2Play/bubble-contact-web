@@ -1,0 +1,14 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.luckandloot.bubblecontacts
+productName: Bubble Contacts
+files:
+  - filter:
+      - '**/*'
+      - '!dist'
+      - '!node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}'
+      - '!**/*.map'
+win:
+  target: nsis
+electronVersion: 37.2.4
