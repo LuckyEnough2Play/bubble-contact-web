@@ -4,4 +4,6 @@ dist/
 .DS_Store
 npm-debug.log*
 .env
+*.exe
+dist-electron/
 
