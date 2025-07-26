@@ -1,0 +1,6 @@
+{
+  "appId": "com.example.bubblecontacts",
+  "appName": "Bubble Contacts",
+  "webDir": "../web",
+  "bundledWebRuntime": false
+}

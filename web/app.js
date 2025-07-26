@@ -1,7 +1,40 @@
-const { ipcRenderer } = require('electron');
+let ipcRenderer = null;
+let StorageAPI = null;
+let isElectron = false;
+let isCapacitor = false;
+try {
+  const e = require('electron');
+  ipcRenderer = e.ipcRenderer;
+  isElectron = true;
+} catch {}
+if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Storage) {
+  StorageAPI = window.Capacitor.Plugins.Storage;
+  isCapacitor = true;
+}
+if (!StorageAPI && window.localStorage) {
+  StorageAPI = {
+    get: async ({ key }) => ({ value: localStorage.getItem(key) }),
+    set: async ({ key, value }) => localStorage.setItem(key, value)
+  };
+}
 let contacts = [];
 let simulation;
 let searchTerm = '';
+async function storageLoadContacts(){
+  if(isElectron) return await ipcRenderer.invoke("load-contacts");
+  if(StorageAPI){
+    const { value } = await StorageAPI.get({ key: "contacts" });
+    return value ? JSON.parse(value) : [];
+  }
+  return [];
+}
+
+function storageSaveContacts(data){
+  if(isElectron) ipcRenderer.send("save-contacts", data);
+  else if(StorageAPI) StorageAPI.set({ key:"contacts", value: JSON.stringify(data) });
+  else if(window.localStorage) localStorage.setItem("contacts", JSON.stringify(data));
+}
+
 let allTags = new Set();
 let tagCounts = new Map();
 let allCompanies = new Set();
@@ -446,7 +479,7 @@ async function deleteTag(tag){
   });
   selectedFilterTags = selectedFilterTags.filter(t=>t!==tag);
   formSelectedTags = formSelectedTags.filter(t=>t!==tag);
-  ipcRenderer.send('save-contacts', contacts);
+  storageSaveContacts(contacts);
   renderTagPanel();
   renderTagOptions();
   render();
@@ -535,7 +568,7 @@ async function deleteContact(){
   const idx = contacts.findIndex(c=>c.id===id);
   if(idx!==-1){
     contacts.splice(idx,1);
-    ipcRenderer.send('save-contacts', contacts);
+    storageSaveContacts(contacts);
     updateContactCount();
     renderTagPanel();
     closeForm();
@@ -609,7 +642,7 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
   }
   sanitizeContacts();
   updateContactCount();
-  ipcRenderer.send('save-contacts', contacts);
+  storageSaveContacts(contacts);
   renderTagPanel();
   closeForm();
   render();
@@ -617,7 +650,7 @@ document.getElementById('contact-form').addEventListener('submit',e=>{
 });
 
 async function load(){
-  contacts = await ipcRenderer.invoke('load-contacts');
+  contacts = await storageLoadContacts();
   if(contacts.length === 0){
     contacts.push({
       id: Date.now().toString(),
@@ -650,6 +683,7 @@ async function load(){
 }
 
 async function importCsv(){
+  if(!isElectron) { alert('Import only available on desktop'); return; }
   const res = await ipcRenderer.invoke('import-csv');
   if(res.canceled) return;
   const csv = res.content.split(/\r?\n/).filter(Boolean);
@@ -692,7 +726,7 @@ async function importCsv(){
   });
   sanitizeContacts();
   updateContactCount();
-  ipcRenderer.send('save-contacts', contacts);
+  storageSaveContacts(contacts);
   updateAllTags();
   renderTagPanel();
   render();
@@ -701,6 +735,7 @@ async function importCsv(){
 
 
 async function exportCsv(){
+  if(!isElectron) { alert('Export only available on desktop'); return; }
   const header = ['First Name','Nickname','Last Name','E-mail Address','Business Phone','Business Street','Company','Job Title','Categories'];
   const lines = contacts.map(c=>{
     return [
@@ -964,16 +999,19 @@ window.addEventListener('resize', () => {
   render();
 });
 
-ipcRenderer.on('window-resized', () => {
-  updateDimensions();
-  render();
-});
 
-ipcRenderer.on('menu-import', importCsv);
-ipcRenderer.on('menu-export', exportCsv);
-ipcRenderer.on('menu-focus-search', () => {
-  const input = document.getElementById('search');
-  if(input) input.focus();
-});
+if(isElectron){
+  ipcRenderer.on('window-resized', () => {
+    updateDimensions();
+    render();
+  });
+
+  ipcRenderer.on('menu-import', importCsv);
+  ipcRenderer.on('menu-export', exportCsv);
+  ipcRenderer.on('menu-focus-search', () => {
+    const input = document.getElementById('search');
+    if(input) input.focus();
+  });
+}
 
 load();
