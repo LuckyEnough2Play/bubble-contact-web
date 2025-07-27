@@ -16,10 +16,13 @@
       <div id="contacts-list"></div>
     </div>
   </div>
-  <div id="tagPanel">
-    <button id="clearTags">Clear Active Tags</button>
-    <h3>Tags Implemented</h3>
-    <div id="tagList"></div>
+  <div id="bottom-sheet">
+    <div class="drag-handle"></div>
+    <div id="tagPanel">
+      <button id="clearTags">Clear Active Tags</button>
+      <h3>Tags Implemented</h3>
+      <div id="tagList"></div>
+    </div>
   </div>
   <svg id="bubbleCanvas">
     <defs>
@@ -129,5 +132,78 @@
   </script>
   <script src="../node_modules/d3/dist/d3.min.js"></script>
   <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const mq = window.matchMedia('(max-width: 600px)');
+      const sheet = document.getElementById('bottom-sheet');
+      const handle = sheet.querySelector('.drag-handle');
+      const COLLAPSED = 40;
+      let startY = 0;
+      let startTranslate = 0;
+      let current = 0;
+      let closed = 0;
+      let dragging = false;
+
+      function setTranslate(y) {
+        current = y;
+        sheet.style.transform = `translateY(${y}px)`;
+      }
+
+      function update() {
+        if (!mq.matches) {
+          sheet.style.transform = '';
+          return;
+        }
+        const h = sheet.offsetHeight;
+        closed = h - COLLAPSED;
+        if (!sheet.classList.contains('open')) {
+          setTranslate(closed);
+        }
+      }
+
+      function startDrag(e) {
+        if (!mq.matches) return;
+        dragging = true;
+        startY = e.touches ? e.touches[0].clientY : e.clientY;
+        startTranslate = current;
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchmove', onDrag, { passive: false });
+        document.addEventListener('touchend', endDrag);
+        e.preventDefault();
+      }
+
+      function onDrag(e) {
+        if (!dragging) return;
+        const y = e.touches ? e.touches[0].clientY : e.clientY;
+        const delta = y - startY;
+        let next = startTranslate + delta;
+        next = Math.max(0, Math.min(closed, next));
+        requestAnimationFrame(() => setTranslate(next));
+        if (e.cancelable) e.preventDefault();
+      }
+
+      function endDrag() {
+        if (!dragging) return;
+        dragging = false;
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('mouseup', endDrag);
+        document.removeEventListener('touchmove', onDrag);
+        document.removeEventListener('touchend', endDrag);
+        if (current > closed / 2) {
+          sheet.classList.remove('open');
+          setTranslate(closed);
+        } else {
+          sheet.classList.add('open');
+          setTranslate(0);
+        }
+      }
+
+      handle.addEventListener('mousedown', startDrag);
+      handle.addEventListener('touchstart', startDrag, { passive: false });
+      window.addEventListener('resize', update);
+      if (mq.matches) update();
+    });
+  </script>
 </body>
 </html>
