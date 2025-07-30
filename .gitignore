@@ -1,9 +1,22 @@
-# Ignore Node modules and build artifacts
+# Node modules and build artifacts
 node_modules/
 dist/
+dist-electron/
 .DS_Store
 npm-debug.log*
 .env
 *.exe
-dist-electron/
 
+# Rust / Cargo / Tauri artifacts
+/src-tauri/target/
+/src-tauri/.cargo/
+/src-tauri/Cargo.lock
+/src-tauri/tauri-build/
+/src-tauri/tauri.conf.json.backup
+
+# Tauri bundler output
+/src-tauri/bundled/
+
+# Windows build extras
+*.msi
+*.nsis
