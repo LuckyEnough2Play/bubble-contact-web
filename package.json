@@ -4,10 +4,10 @@
   "description": "# bubble-contact-web",
   "main": "index.js",
   "scripts": {
-    "start": "electron .",
+    "dev": "tauri dev",
+    "build": "tauri build",
     "android": "npx cap open android",
     "ios": "npx cap open ios",
-    "dist": "electron-builder",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -28,6 +28,7 @@
     "d3": "^7.9.0"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.7.1",
     "electron": "^37.2.4",
     "electron-builder": "^26.0.12"
   },

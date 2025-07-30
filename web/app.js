@@ -2,6 +2,7 @@ let ipcRenderer = null;
 let StorageAPI = null;
 let isElectron = false;
 let isCapacitor = false;
+let isTauri = !!window.__TAURI__;
 try {
   const e = require('electron');
   ipcRenderer = e.ipcRenderer;
@@ -22,6 +23,7 @@ let simulation;
 let searchTerm = '';
 async function storageLoadContacts(){
   if(isElectron) return await ipcRenderer.invoke("load-contacts");
+  if(isTauri) return await window.__TAURI__.invoke('load_contacts');
   if(StorageAPI){
     const { value } = await StorageAPI.get({ key: "contacts" });
     return value ? JSON.parse(value) : [];
@@ -31,6 +33,7 @@ async function storageLoadContacts(){
 
 function storageSaveContacts(data){
   if(isElectron) ipcRenderer.send("save-contacts", data);
+  else if(isTauri) window.__TAURI__.invoke('save_contacts', { contacts: data });
   else if(StorageAPI) StorageAPI.set({ key:"contacts", value: JSON.stringify(data) });
   else if(window.localStorage) localStorage.setItem("contacts", JSON.stringify(data));
 }
@@ -683,8 +686,14 @@ async function load(){
 }
 
 async function importCsv(){
-  if(!isElectron) { alert('Import only available on desktop'); return; }
-  const res = await ipcRenderer.invoke('import-csv');
+  if(isElectron) {
+    var res = await ipcRenderer.invoke('import-csv');
+  } else if(isTauri) {
+    var res = await window.__TAURI__.invoke('import_csv');
+  } else {
+    alert('Import only available on desktop');
+    return;
+  }
   if(res.canceled) return;
   const csv = res.content.split(/\r?\n/).filter(Boolean);
   const headers = csv.shift().split(',');
@@ -735,7 +744,7 @@ async function importCsv(){
 
 
 async function exportCsv(){
-  if(!isElectron) { alert('Export only available on desktop'); return; }
+  if(!isElectron && !isTauri) { alert('Export only available on desktop'); return; }
   const header = ['First Name','Nickname','Last Name','E-mail Address','Business Phone','Business Street','Company','Job Title','Categories'];
   const lines = contacts.map(c=>{
     return [
@@ -751,7 +760,11 @@ async function exportCsv(){
     ].join(',');
   });
   const csv = header.join(',')+'\n'+lines.join('\n');
-  await ipcRenderer.invoke('export-csv', csv);
+  if(isElectron) {
+    await ipcRenderer.invoke('export-csv', csv);
+  } else if(isTauri) {
+    await window.__TAURI__.invoke('export_csv', { csv });
+  }
 }
 
 const importBtn = document.getElementById('import');
@@ -1009,6 +1022,13 @@ if(isElectron){
   ipcRenderer.on('menu-import', importCsv);
   ipcRenderer.on('menu-export', exportCsv);
   ipcRenderer.on('menu-focus-search', () => {
+    const input = document.getElementById('search');
+    if(input) input.focus();
+  });
+} else if(isTauri){
+  window.__TAURI__.event.listen('menu-import', () => importCsv());
+  window.__TAURI__.event.listen('menu-export', () => exportCsv());
+  window.__TAURI__.event.listen('menu-focus-search', () => {
     const input = document.getElementById('search');
     if(input) input.focus();
   });
