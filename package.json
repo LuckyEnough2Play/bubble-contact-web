@@ -4,8 +4,8 @@
   "description": "# bubble-contact-web",
   "main": "index.js",
   "scripts": {
-    "dev": "tauri dev",
-    "build": "tauri build",
+    "dev": "cargo tauri dev",
+    "build": "cargo tauri build",
     "android": "npx cap open android",
     "ios": "npx cap open ios",
     "test": "echo \"Error: no test specified\" && exit 1"
